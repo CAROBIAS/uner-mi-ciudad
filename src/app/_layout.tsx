@@ -13,6 +13,16 @@ export default function TabLayout() {
       <AnimatedSplashOverlay />
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="lugares/index" options={{ title: 'Lugares' }} />
+        <Stack.Screen name="lugares/[id]" options={{ title: 'Lugar' }} />
+        <Stack.Screen name="descargas" options={{ title: 'Descargas' }} />
+        <Stack.Screen name="eventos/[id]" options={{ title: 'Evento' }} />
+        <Stack.Screen name="ingresar" options={{ title: 'Ingresar' }} />
+        <Stack.Screen name="desbloquear" options={{ title: 'Desbloquear' }} />
+        <Stack.Screen name="favoritos" options={{ title: 'Favoritos' }} />
+        <Stack.Screen name="preferencias" options={{ title: 'Preferencias' }} />
+        <Stack.Screen name="registrar-visita" options={{ title: 'Registrar visita' }} />
+        <Stack.Screen name="escanear-qr" options={{ title: 'Escanear QR' }} />
       </Stack>
     </ThemeProvider>
   );
