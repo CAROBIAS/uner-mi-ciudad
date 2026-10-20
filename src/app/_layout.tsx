@@ -23,6 +23,7 @@ export default function TabLayout() {
         <Stack.Screen name="preferencias" options={{ title: 'Preferencias' }} />
         <Stack.Screen name="registrar-visita" options={{ title: 'Registrar visita' }} />
         <Stack.Screen name="escanear-qr" options={{ title: 'Escanear QR' }} />
+        <Stack.Screen name="dev" options={{ title: 'Menú de pruebas' }} />
       </Stack>
     </ThemeProvider>
   );
