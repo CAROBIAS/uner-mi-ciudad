@@ -134,6 +134,17 @@ async function probarArchivos(): Promise<string[]> {
   return l;
 }
 
+async function probarPersistencia(): Promise<string[]> {
+  // Usuario y lugares fijos: cada vez que se entra se agrega un favorito nuevo.
+  const u = 'usr-prueba-persistencia';
+  await agregarFavorito(u, `lug-persistencia-${Date.now()}`);
+  const cantidad = (await listarFavoritos(u)).length;
+  return [
+    '— SOBREVIVE AL CERRAR LA APP —',
+    `Contador: ${cantidad} (sube de a 1 cada vez que entrás, también después de cerrar la app)`,
+  ];
+}
+
 async function probarRed(): Promise<string[]> {
   return ['— RED —', `¿Hay internet?: ${await hayInternet()} (provisorio: siempre true)`];
 }
@@ -146,6 +157,7 @@ const PRUEBAS = [
   probarAvisos,
   probarArchivos,
   probarRed,
+  probarPersistencia,
 ];
 
 async function probarTodo(): Promise<string[]> {
