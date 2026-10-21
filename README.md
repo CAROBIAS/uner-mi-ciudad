@@ -201,7 +201,10 @@ rutas se actualiza recién al iniciar Expo.
 
 > ✅ **Ya guardan de verdad** (SQLite y kv-store): favoritos, visitas, eventos guardados,
 > avisos de cercanía, preferencias y usuario sobreviven al cerrar la app.
-> ⚠️ **Siguen provisorias:** `archivos` (no copia archivos todavía) y `red` (siempre "sí").
+> ✅ `red` detecta de verdad si hay internet, y aparece una franja **"Sin conexión"** arriba en toda la app.
+> ✅ **Sin señal**, `obtenerLugares()`, `obtenerLugar(id)` y `obtenerCategorias()` devuelven la
+> última copia guardada. Las pantallas no tienen que hacer nada especial.
+> ⚠️ **Sigue provisorio:** `archivos` (no copia archivos todavía).
 
 | Archivo | Funciones |
 |---|---|
