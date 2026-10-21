@@ -21,6 +21,7 @@ export default function DevScreen() {
         <Link href="/registrar-visita"><ThemedText type="linkPrimary">Registrar visita (1)</ThemedText></Link>
         <Link href="/escanear-qr"><ThemedText type="linkPrimary">Escanear QR (1)</ThemedText></Link>
         <Link href="/dev-servicios"><ThemedText type="linkPrimary">⚙️ Probar servicios</ThemedText></Link>
+        <Link href="/dev-almacenamiento"><ThemedText type="linkPrimary">💾 Probar almacenamiento</ThemedText></Link>
       </ScrollView>
     </ThemedView>
   );

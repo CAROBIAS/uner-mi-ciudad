@@ -191,3 +191,41 @@ rutas se actualiza recién al iniciar Expo.
 
 1. Ejecutar `npx expo start`.
 2. En VS Code: `Ctrl + Shift + P` → **TypeScript: Restart TS Server**.
+
+-------------------------------------------------------------------------------------------------------
+
+## 10. Guardar datos en el celular (`src/almacenamiento/`)
+
+- **`src/servicios/`** = datos que vienen de afuera (la API).
+- **`src/almacenamiento/`** = datos guardados en el celular.
+
+> ⚠️ **Hoy son piezas provisorias:** guardan en memoria y se borran al cerrar la app.
+> Los nombres de las funciones son **definitivos**: cuando se pase a la base de datos
+> real, cambia solo el interior y **sus pantallas no se tocan**. Todas son asíncronas
+> (usar `await`). Las que son por usuario reciben `usuarioId` (`useSesion().usuario.id`).
+
+| Archivo | Funciones |
+|---|---|
+| `favoritos` | `agregarFavorito(usuarioId, lugarId)`, `quitarFavorito(usuarioId, lugarId)`, `esFavorito(usuarioId, lugarId)`, `listarFavoritos(usuarioId)` |
+| `visitas` | `crearVisita({ usuarioId, lugarId, origen, fotoUri, nota })`, `listarVisitas(usuarioId)`, `listarVisitasPendientes(usuarioId)`, `marcarVisitaSubida(id)` |
+| `preferencias` | `obtenerPreferencias()`, `guardarPreferencias(preferencias)`, `guardarUsuario(usuario)`, `obtenerUsuarioGuardado()`, `borrarUsuarioGuardado()` |
+| `eventos-guardados` | `guardarEvento(usuarioId, eventoId, recordatorioId, estado)`, `quitarEventoGuardado(usuarioId, eventoId)`, `obtenerEventoGuardado(usuarioId, eventoId)`, `listarEventosGuardados(usuarioId)`, `actualizarEstadoEventoGuardado(usuarioId, eventoId, estado)` |
+| `avisos-cercania` | `yaSeAvisoHoy(lugarId)`, `registrarAviso(lugarId)` |
+| `archivos` | `guardarFotoVisita(uriTemporal)`, `descargarLugar(lugar)`, `obtenerDescarga(lugarId)`, `eliminarDescarga(lugarId)`, `listarDescargas()` |
+| `red` | `hayInternet()` (para preguntar una vez), `useHayInternet()` (para pantallas que se actualizan solas) |
+
+**Notas:**
+- Una visita nueva queda siempre "pendiente de subir" (`sincronizada: false`).
+- `preferencias` guarda nombre y email del usuario, **nunca** la contraseña ni el token
+  (el token va en el almacenamiento seguro, Integrante 3).
+- `guardarEvento` recibe el `recordatorioId` del aviso programado, para poder cancelarlo al quitar.
+
+Ejemplo:
+```tsx
+import { agregarFavorito, esFavorito } from '@/almacenamiento/favoritos';
+
+const { usuario } = useSesion();
+if (usuario) await agregarFavorito(usuario.id, lugar.id);
+```
+
+Para probar todas las piezas: Mapa → Menú de pruebas → **💾 Probar almacenamiento**.
