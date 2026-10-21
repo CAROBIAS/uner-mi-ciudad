@@ -1,8 +1,8 @@
 import type { EstadoEvento } from '@/tipos';
 
-// EVENTOS GUARDADOS (Integrante 2)
-// PIEZA PROVISORIA: guarda en memoria (se borra al cerrar la app).
-// Después se reemplaza por SQLite SIN cambiar los nombres de las funciones.
+import { obtenerBase } from './base';
+
+// EVENTOS GUARDADOS (Integrante 2) — guardados en SQLite (sobreviven al cerrar la app).
 
 export type EventoGuardado = {
   usuarioId: string;
@@ -12,11 +12,8 @@ export type EventoGuardado = {
   guardadoEn: string;
 };
 
-let guardados: EventoGuardado[] = [];
-
-function esDe(g: EventoGuardado, usuarioId: string, eventoId: string): boolean {
-  return g.usuarioId === usuarioId && g.eventoId === eventoId;
-}
+const COLUMNAS = `usuario_id AS usuarioId, evento_id AS eventoId, recordatorio_id AS recordatorioId,
+  estado, guardado_en AS guardadoEn`;
 
 // Si ya estaba guardado, lo reemplaza.
 export async function guardarEvento(
@@ -25,6 +22,7 @@ export async function guardarEvento(
   recordatorioId: string | null,
   estado: EstadoEvento,
 ): Promise<EventoGuardado> {
+  const base = await obtenerBase();
   const nuevo: EventoGuardado = {
     usuarioId,
     eventoId,
@@ -32,12 +30,25 @@ export async function guardarEvento(
     estado,
     guardadoEn: new Date().toISOString(),
   };
-  guardados = [nuevo, ...guardados.filter((g) => !esDe(g, usuarioId, eventoId))];
+  await base.runAsync(
+    `INSERT OR REPLACE INTO eventos_guardados (usuario_id, evento_id, recordatorio_id, estado, guardado_en)
+     VALUES (?, ?, ?, ?, ?)`,
+    nuevo.usuarioId,
+    nuevo.eventoId,
+    nuevo.recordatorioId,
+    nuevo.estado,
+    nuevo.guardadoEn,
+  );
   return nuevo;
 }
 
 export async function quitarEventoGuardado(usuarioId: string, eventoId: string): Promise<void> {
-  guardados = guardados.filter((g) => !esDe(g, usuarioId, eventoId));
+  const base = await obtenerBase();
+  await base.runAsync(
+    'DELETE FROM eventos_guardados WHERE usuario_id = ? AND evento_id = ?',
+    usuarioId,
+    eventoId,
+  );
 }
 
 // Sirve para saber si mostrar "Guardar" o "Quitar", y para obtener el recordatorioId.
@@ -45,11 +56,20 @@ export async function obtenerEventoGuardado(
   usuarioId: string,
   eventoId: string,
 ): Promise<EventoGuardado | null> {
-  return guardados.find((g) => esDe(g, usuarioId, eventoId)) ?? null;
+  const base = await obtenerBase();
+  return base.getFirstAsync<EventoGuardado>(
+    `SELECT ${COLUMNAS} FROM eventos_guardados WHERE usuario_id = ? AND evento_id = ?`,
+    usuarioId,
+    eventoId,
+  );
 }
 
 export async function listarEventosGuardados(usuarioId: string): Promise<EventoGuardado[]> {
-  return guardados.filter((g) => g.usuarioId === usuarioId);
+  const base = await obtenerBase();
+  return base.getAllAsync<EventoGuardado>(
+    `SELECT ${COLUMNAS} FROM eventos_guardados WHERE usuario_id = ? ORDER BY guardado_en DESC`,
+    usuarioId,
+  );
 }
 
 export async function actualizarEstadoEventoGuardado(
@@ -57,5 +77,11 @@ export async function actualizarEstadoEventoGuardado(
   eventoId: string,
   estado: EstadoEvento,
 ): Promise<void> {
-  guardados = guardados.map((g) => (esDe(g, usuarioId, eventoId) ? { ...g, estado } : g));
+  const base = await obtenerBase();
+  await base.runAsync(
+    'UPDATE eventos_guardados SET estado = ? WHERE usuario_id = ? AND evento_id = ?',
+    estado,
+    usuarioId,
+    eventoId,
+  );
 }
