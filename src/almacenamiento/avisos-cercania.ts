@@ -1,25 +1,28 @@
-// AVISOS DE CERCANÍA YA ENVIADOS (Integrante 2)
+import { obtenerBase } from './base';
+
+// AVISOS DE CERCANÍA YA ENVIADOS (Integrante 2) — guardados en SQLite.
 // Sirve para no avisar dos veces el mismo día del mismo lugar.
-// PIEZA PROVISORIA: guarda en memoria (se borra al cerrar la app).
-// Después se reemplaza por SQLite SIN cambiar los nombres de las funciones.
 
-type AvisoEnviado = {
-  lugarId: string;
-  fecha: string; // "AAAA-MM-DD" (día en Argentina)
-};
-
-let avisos: AvisoEnviado[] = [];
-
-// Fecha de hoy en Argentina, sin importar la zona horaria del celular.
+// Fecha de hoy en Argentina ("AAAA-MM-DD"), sin importar la zona horaria del celular.
 function fechaDeHoy(): string {
   return new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
 
 export async function yaSeAvisoHoy(lugarId: string): Promise<boolean> {
-  const hoy = fechaDeHoy();
-  return avisos.some((a) => a.lugarId === lugarId && a.fecha === hoy);
+  const base = await obtenerBase();
+  const fila = await base.getFirstAsync(
+    'SELECT 1 FROM avisos_cercania WHERE lugar_id = ? AND fecha = ?',
+    lugarId,
+    fechaDeHoy(),
+  );
+  return fila !== null;
 }
 
 export async function registrarAviso(lugarId: string): Promise<void> {
-  avisos = [...avisos, { lugarId, fecha: fechaDeHoy() }];
+  const base = await obtenerBase();
+  await base.runAsync(
+    'INSERT OR IGNORE INTO avisos_cercania (lugar_id, fecha) VALUES (?, ?)',
+    lugarId,
+    fechaDeHoy(),
+  );
 }
