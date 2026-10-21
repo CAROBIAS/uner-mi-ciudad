@@ -199,10 +199,9 @@ rutas se actualiza recién al iniciar Expo.
 - **`src/servicios/`** = datos que vienen de afuera (la API).
 - **`src/almacenamiento/`** = datos guardados en el celular.
 
-> ⚠️ **Hoy son piezas provisorias:** guardan en memoria y se borran al cerrar la app.
-> Los nombres de las funciones son **definitivos**: cuando se pase a la base de datos
-> real, cambia solo el interior y **sus pantallas no se tocan**. Todas son asíncronas
-> (usar `await`). Las que son por usuario reciben `usuarioId` (`useSesion().usuario.id`).
+> ✅ **Ya guardan de verdad** (SQLite y kv-store): favoritos, visitas, eventos guardados,
+> avisos de cercanía, preferencias y usuario sobreviven al cerrar la app.
+> ⚠️ **Siguen provisorias:** `archivos` (no copia archivos todavía) y `red` (siempre "sí").
 
 | Archivo | Funciones |
 |---|---|
