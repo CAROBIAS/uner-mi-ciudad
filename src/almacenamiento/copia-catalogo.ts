@@ -7,6 +7,16 @@ import { obtenerBase } from './base';
 
 type Tabla = 'lugares_copia' | 'categorias_copia';
 
+// Las copias se guardan de a una por vez: si dos pantallas piden datos al mismo tiempo,
+// la segunda espera a que termine la primera (SQLite no permite dos transacciones a la vez).
+let cola: Promise<unknown> = Promise.resolve();
+
+function enOrden<T>(tarea: () => Promise<T>): Promise<T> {
+  const resultado = cola.then(tarea, tarea);
+  cola = resultado.catch(() => undefined);
+  return resultado;
+}
+
 // Reemplaza la copia anterior completa (así un lugar dado de baja no queda guardado).
 async function reemplazarCopia(tabla: Tabla, elementos: { id: string }[]): Promise<void> {
   const base = await obtenerBase();
@@ -30,7 +40,7 @@ async function leerCopia<T>(tabla: Tabla): Promise<T[] | null> {
 }
 
 export async function guardarCopiaLugares(lugares: Lugar[]): Promise<void> {
-  await reemplazarCopia('lugares_copia', lugares);
+  await enOrden(() => reemplazarCopia('lugares_copia', lugares));
 }
 
 export async function leerCopiaLugares(): Promise<Lugar[] | null> {
@@ -47,7 +57,7 @@ export async function leerCopiaLugar(id: string): Promise<Lugar | null> {
 }
 
 export async function guardarCopiaCategorias(categorias: Categoria[]): Promise<void> {
-  await reemplazarCopia('categorias_copia', categorias);
+  await enOrden(() => reemplazarCopia('categorias_copia', categorias));
 }
 
 export async function leerCopiaCategorias(): Promise<Categoria[] | null> {

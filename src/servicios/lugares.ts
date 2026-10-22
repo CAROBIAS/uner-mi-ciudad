@@ -29,8 +29,9 @@ function esSinConexion(error: unknown): boolean {
 async function intentarGuardar(guardar: () => Promise<void>): Promise<void> {
   try {
     await guardar();
-  } catch {
-    // Se ignora a propósito.
+  } catch (error) {
+    // La pantalla sigue funcionando, pero el problema queda visible en la terminal.
+    console.warn('No se pudo guardar la copia para usar sin señal:', error);
   }
 }
 
