@@ -18,6 +18,7 @@ import {
     ingresar as ingresarServicio,
     obtenerToken,
 } from '@/servicios/sesion';
+import { biometriaPreparada, pedirBiometria } from '@/servicios/biometria';
 import type { Usuario } from '@/tipos';
 
 // cargando: leyendo el token, bloqueado: falta huella o rostro, conSesion: token valido
@@ -27,6 +28,7 @@ export type ValorSesion = {
     estado: EstadoSesion;
     usuario: Usuario | null;
     ingresar: (email: string, contrasena: string) => Promise<void>;
+    desbloquear: () => Promise<boolean>;
     cerrarSesion: () => Promise<void>;
 };
 
@@ -50,8 +52,11 @@ export function SesionProvider({ children }: PropsWithChildren) {
                 if (!activo) return;
 
                 if (token && usuarioGuardado) {
+                    // Con token guardado, al abrir la app se pide huella o rostro
+                    // Si el celular no tiene, la pantalla ofrece
+                    // entrar con la contrasena
                     setUsuario(usuarioGuardado);
-                    setEstado('conSesion');
+                    setEstado('bloqueado');
                 } else {
                     setEstado('invitado');
                 }
@@ -74,6 +79,25 @@ export function SesionProvider({ children }: PropsWithChildren) {
         setEstado('conSesion');
     }, []);
 
+    const desbloquear = useCallback(async () => {
+        let disponible = false;
+        try {
+            disponible = await biometriaPreparada();
+        } catch {
+            disponible = false;
+        }
+
+        if (!disponible) return false;
+
+        const resultado = await pedirBiometria();
+        if (resultado.success) {
+            setEstado('conSesion');
+            return true;
+        }
+
+        return false;
+    }, []);
+
     const cerrarSesion = useCallback(async () => {
         await cerrarSesionServicio();
         await borrarUsuarioGuardado().catch(() => undefined);
@@ -82,8 +106,8 @@ export function SesionProvider({ children }: PropsWithChildren) {
     }, []);
 
     const valor = useMemo(
-        () => ({ estado, usuario, ingresar, cerrarSesion }),
-        [estado, usuario, ingresar, cerrarSesion],
+        () => ({ estado, usuario, ingresar, desbloquear, cerrarSesion }),
+        [estado, usuario, ingresar, desbloquear, cerrarSesion],
     );
 
     return <SesionContext.Provider value={valor}>{children}</SesionContext.Provider>;

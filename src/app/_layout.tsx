@@ -1,17 +1,33 @@
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
+import { useSesion } from '@/hooks/use-sesion';
 import { SesionProvider } from '@/providers/sesion';
 
 SplashScreen.preventAutoHideAsync();
+
+function GuardiaSesion() {
+  const { estado } = useSesion();
+  const segments = useSegments();
+
+  useEffect(() => {
+    if (estado === 'bloqueado' && segments[0] !== 'desbloquear') {
+      router.replace('/desbloquear');
+    }
+  }, [estado, segments]);
+
+  return null;
+}
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   return (
     <SesionProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <GuardiaSesion />
         <AnimatedSplashOverlay />
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
