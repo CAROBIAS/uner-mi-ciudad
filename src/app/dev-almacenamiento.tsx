@@ -151,8 +151,8 @@ async function probarArchivos(): Promise<string[]> {
     );
     await eliminarDescarga('lug-009');
     l.push(`¿lug-009 después de eliminarlo?: ${(await obtenerDescarga('lug-009')) !== null} (esperado false)`);
-  } catch {
-    l.push('lug-009: no se pudo descargar (es lo esperado SOLO si no hay internet)');
+  } catch (error) {
+    l.push(`lug-009: falló → ${String(error)}`);
   }
   return l;
 }
