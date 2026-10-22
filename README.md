@@ -233,3 +233,161 @@ if (usuario) await agregarFavorito(usuario.id, lugar.id);
 ```
 
 Para probar todas las piezas: Mapa → Menú de pruebas → **💾 Probar almacenamiento**.
+
+## 11. Cuenta del usuario (Integrante 3)
+
+### Archivos principales
+
+| Archivo | Qué hace |
+|---|---|
+| `src/servicios/sesion.ts` | Ingreso, cierre de sesión y `obtenerToken()`. |
+| `src/providers/sesion.tsx` | Estado global de la sesión: `ingresar`, `desbloquear`, `cerrarSesion`. |
+| `src/servicios/biometria.ts` | Detecta huella/rostro y pide el desbloqueo. |
+| `src/hooks/use-sesion.ts` | Hook para leer la sesión desde cualquier pantalla. |
+| `src/app/ingresar.tsx` | Pantalla de ingreso. |
+| `src/app/desbloquear.tsx` | Pantalla de desbloqueo con huella o rostro. |
+| `src/app/(tabs)/yo.tsx` | Perfil, accesos y cierre de sesión. |
+| `src/app/favoritos.tsx` | Lista de favoritos. |
+| `src/app/preferencias.tsx` | Preferencias del usuario. |
+| `src/app/(tabs)/recorrido.tsx` | Lista de visitas. |
+| `src/components/bloqueo-cuenta.tsx` | Aviso reutilizable "Necesitás una cuenta". |
+| `src/components/boton-favorito.tsx` | Estrella de favorito reutilizable. |
+
+### 11.1 Ingreso y sesión
+
+Cuentas de prueba (solo hasta que nos den la API):
+
+| Email | Contraseña |
+|---|---|
+| `turista@colon.gob.ar` | `Colon2026` |
+| `guia@colon.gob.ar` | `Guia2026` |
+
+- La pantalla valida email y contraseña de al menos 8 caracteres.
+- Muestra error con credenciales incorrectas y también sin conexión
+  (`MODO_SIMULACION = 'sinConexion'`).
+- El teclado no tapa el botón (`KeyboardAvoidingView` + `ScrollView`).
+- Al ingresar vuelve a la pantalla anterior (`router.back()`); si no hay
+  historial, va a Inicio.
+- El token se guarda con `expo-secure-store` en la clave `token-sesion`,
+  nunca en kv-store. Los datos públicos del usuario se guardan en
+  `src/almacenamiento/preferencias.ts`.
+- `obtenerToken()` devuelve `string | null` y es la función que debe usar la
+  "puerta" cuando se conecte la API. No leer SecureStore directamente.
+
+Estados del provider (`useSesion()`):
+
+| Estado | Qué significa |
+|---|---|
+| `cargando` | Está leyendo el token y el usuario guardado. |
+| `invitado` | No hay sesión. |
+| `bloqueado` | Hay token y usuario guardados, pero falta huella o rostro. |
+| `conSesion` | Token válido y sesión desbloqueada. |
+
+Al abrir la app con token guardado, la sesión sigue abierta pero queda en
+`bloqueado` hasta pasar la biometría. Cerrar sesión borra el token y el usuario
+guardado.
+
+### 11.2 Desbloqueo con huella o rostro
+
+- Al abrir la app con sesión guardada se pide la huella o el rostro
+  automáticamente.
+- Si el celular no tiene biometría configurada, si falla o si se cancela,
+  queda el botón **Ingresar con contraseña**. Ese botón cierra la sesión
+  guardada y lleva a la pantalla de ingreso.
+- `disableDeviceFallback: true`: no se puede usar el PIN o patrón del celular;
+  la alternativa es la contraseña de la app.
+- También se puede desbloquear desde Yo.
+
+### 11.3 Yo
+
+- Sin cuenta: botón **Ingresar** y una línea que explica qué se gana.
+- Con cuenta: inicial, nombre, email, accesos a **Favoritos**,
+  **Preferencias** y **Descargas**, y **Cerrar sesión**.
+- Bloqueado: botón para desbloquear.
+- La fila **Descargas** lleva a `/descargas`, pantalla del Integrante 4.
+
+### 11.4 Favoritos
+
+La estrella está en `src/components/boton-favorito.tsx`:
+
+```tsx
+import { BotonFavorito } from '@/components/boton-favorito';
+
+<BotonFavorito lugarId={lugar.id} />
+```
+
+- Un toque marca o desmarca.
+- Sin cuenta pide ingresar.
+- Guarda con las funciones de `src/almacenamiento/favoritos.ts`.
+- **Pendiente de integración:** el Integrante 4 la coloca en la ficha del lugar.
+
+La pantalla `src/app/favoritos.tsx` muestra la lista, el estado vacío, permite
+quitar con confirmación y bloquea el acceso sin cuenta. Hoy usa una fila propia;
+cuando el Integrante 4 entregue la tarjeta de lugar, se reemplaza por esa tarjeta.
+
+### 11.5 Preferencias
+
+- Interruptor "Avisarme de lugares cercanos".
+- Distancia: 100, 250 o 500 m.
+- Categorías favoritas: se pueden marcar varias.
+- Tema: claro, oscuro o según el sistema.
+- Se guardan con `src/almacenamiento/preferencias.ts` (kv-store).
+- **Pendiente:** el cambio de tema lo aplica el Integrante 6 en el tema global;
+  hoy `useTheme` solo lee el sistema.
+
+### 11.6 Mi recorrido
+
+- Botón **Registrar visita**: solo con cuenta.
+- Botón **Escanear QR**: también visible sin cuenta.
+- Lista de visitas con foto, nombre del lugar, fecha, nota, origen y estado
+  de sincronización.
+- Estado vacío con botón para registrar la primera visita.
+- Sin cuenta muestra el bloqueo compartido; la lista solo se ve con sesión.
+
+### 11.7 Bloqueo "Necesitás una cuenta"
+
+Componente reutilizable:
+
+```tsx
+import { BloqueoCuenta } from '@/components/bloqueo-cuenta';
+
+<BloqueoCuenta mensaje="Ingresá para ..." />
+```
+
+Ya se usa en Favoritos y Mi recorrido. **Pendiente de integración:** Integrante 1
+en Registrar visita e Integrante 6 en Guardar evento.
+
+### 11.8 Cómo probar
+
+1. Ingresar con una cuenta de prueba.
+2. Cerrar la app y volver a abrirla: debe pedir huella o rostro.
+3. Probar en un celular sin biometría: debe quedar el botón de contraseña.
+4. Probar credenciales incorrectas y el modo `'sinConexion'`.
+5. En Yo: Favoritos, Preferencias, Descargas y Cerrar sesión.
+6. En Favoritos: marcar/desmarcar desde la ficha (cuando el 4 coloque la
+   estrella), quitar y probar sin cuenta.
+7. En Mi recorrido: probar los botones (por ahora abren los placeholders del
+   Integrante 1), el estado vacío y el bloqueo sin cuenta.
+8. En Preferencias: cambiar los valores, guardar y reabrir la app.
+9. Sin conexión: primero cargá el catálogo con internet (hoy desde
+   **Menú de pruebas → Probar servicios**; cuando el Integrante 4 implemente el
+   listado, se guarda al abrir **Lugares**). Después activá modo avión y volvé a
+   Probar servicios: Lugares y Categorías deben seguir funcionando desde la
+   copia local, y Eventos debe fallar con `SIN_CONEXION`.
+10. La franja roja **"Sin conexión"** aparece con modo avión. El modo
+    `MODO_SIMULACION = 'sinConexion'` simula el fallo de los servicios sin
+    apagar la red; volver a `'normal'` antes de commitear.
+11. Favoritos y Mi recorrido usan esa copia para mostrar los lugares. Para
+    probarlos con datos hace falta tener un favorito/visita; la creación desde
+    la UI queda pendiente de la estrella (Integrante 4) y Registrar visita
+    (Integrante 1).
+
+### 11.9 Pendientes conocidos
+
+- Integrar la estrella en la ficha y la tarjeta de lugar en Favoritos (Integrante 4).
+- Usar el bloqueo en Registrar visita y Guardar evento (Integrantes 1 y 6).
+- Aplicar el tema elegido en Preferencias (Integrante 6).
+- Aviso de evento cancelado (depende de los avisos del Integrante 6 y del
+  guardado del Integrante 2).
+- Registro: la consigna pide "Registro e ingreso"; falta definición de cátedra.
+- API real: reemplazar las cuentas de prueba y manejar "no autorizado".
