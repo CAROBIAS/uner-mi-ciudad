@@ -369,16 +369,24 @@ en Registrar visita e Integrante 6 en Guardar evento.
 7. En Mi recorrido: probar los botones (por ahora abren los placeholders del
    Integrante 1), el estado vacío y el bloqueo sin cuenta.
 8. En Preferencias: cambiar los valores, guardar y reabrir la app.
-9. Sin conexión: `MODO_SIMULACION = 'sinConexion'`, volver a `'normal'` antes de
-   commitear. Favoritos y Mi recorrido guardan los IDs, pero hoy las listas no
-   muestran los lugares sin conexión: falta una copia local del lugar.
+9. Sin conexión: primero cargá el catálogo con internet (hoy desde
+   **Menú de pruebas → Probar servicios**; cuando el Integrante 4 implemente el
+   listado, se guarda al abrir **Lugares**). Después activá modo avión y volvé a
+   Probar servicios: Lugares y Categorías deben seguir funcionando desde la
+   copia local, y Eventos debe fallar con `SIN_CONEXION`.
+10. La franja roja **"Sin conexión"** aparece con modo avión. El modo
+    `MODO_SIMULACION = 'sinConexion'` simula el fallo de los servicios sin
+    apagar la red; volver a `'normal'` antes de commitear.
+11. Favoritos y Mi recorrido usan esa copia para mostrar los lugares. Para
+    probarlos con datos hace falta tener un favorito/visita; la creación desde
+    la UI queda pendiente de la estrella (Integrante 4) y Registrar visita
+    (Integrante 1).
 
 ### 11.9 Pendientes conocidos
 
 - Integrar la estrella en la ficha y la tarjeta de lugar en Favoritos (Integrante 4).
 - Usar el bloqueo en Registrar visita y Guardar evento (Integrantes 1 y 6).
 - Aplicar el tema elegido en Preferencias (Integrante 6).
-- Copia local del lugar para que Favoritos y Mi recorrido funcionen sin conexión.
 - Aviso de evento cancelado (depende de los avisos del Integrante 6 y del
   guardado del Integrante 2).
 - Registro: la consigna pide "Registro e ingreso"; falta definición de cátedra.
