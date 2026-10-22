@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { listarFavoritos, quitarFavorito } from '@/almacenamiento/favoritos';
+import { BloqueoCuenta } from '@/components/bloqueo-cuenta';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
@@ -135,25 +136,7 @@ export default function FavoritosScreen() {
   if (!usuarioId) {
     return (
       <ThemedView style={styles.centro}>
-        <Ionicons name="person-circle-outline" size={64} color={theme.textSecondary} />
-        <ThemedText type="smallBold">Ingresá para ver tus favoritos.</ThemedText>
-        <ThemedText themeColor="textSecondary" style={styles.centrado}>
-          Los favoritos se guardan en tu cuenta.
-        </ThemedText>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Ingresar"
-          onPress={() => router.push('/ingresar')}
-          style={({ pressed }) => [
-            styles.boton,
-            { backgroundColor: theme.text },
-            pressed && styles.presionado,
-          ]}
-        >
-          <ThemedText type="smallBold" style={{ color: theme.background }}>
-            Ingresar
-          </ThemedText>
-        </Pressable>
+        <BloqueoCuenta mensaje="Ingresá para ver tus favoritos. Se guardan en tu cuenta." />
       </ThemedView>
     );
   }

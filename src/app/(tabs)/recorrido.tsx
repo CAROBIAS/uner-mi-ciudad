@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import { listarVisitas } from '@/almacenamiento/visitas';
+import { BloqueoCuenta } from '@/components/bloqueo-cuenta';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
@@ -161,27 +162,7 @@ export default function RecorridoScreen() {
         </View>
 
         {!usuarioId ? (
-          <ThemedView type="backgroundElement" style={styles.aviso}>
-            <Ionicons name="person-circle-outline" size={64} color={theme.textSecondary} />
-            <ThemedText type="smallBold">Ingresá para ver tu recorrido.</ThemedText>
-            <ThemedText themeColor="textSecondary" style={styles.centrado}>
-              Las visitas se guardan en tu cuenta.
-            </ThemedText>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Ingresar"
-              onPress={() => router.push('/ingresar')}
-              style={({ pressed }) => [
-                styles.boton,
-                { backgroundColor: theme.text },
-                pressed && styles.presionado,
-              ]}
-            >
-              <ThemedText type="smallBold" style={{ color: theme.background }}>
-                Ingresar
-              </ThemedText>
-            </Pressable>
-          </ThemedView>
+          <BloqueoCuenta mensaje="Ingresá para ver tu recorrido. Las visitas se guardan en tu cuenta." />
         ) : null}
 
         {usuarioId && error ? (
