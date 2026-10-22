@@ -1,5 +1,6 @@
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@react-native-vector-icons/ionicons';
+import { Image } from 'expo-image';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -118,32 +119,6 @@ export default function RecorridoScreen() {
     );
   }
 
-  if (!usuarioId) {
-    return (
-      <ThemedView style={styles.centro}>
-        <Ionicons name="person-circle-outline" size={64} color={theme.textSecondary} />
-        <ThemedText type="smallBold">Ingresá para ver tu recorrido.</ThemedText>
-        <ThemedText themeColor="textSecondary" style={styles.centrado}>
-          Las visitas se guardan en tu cuenta.
-        </ThemedText>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Ingresar"
-          onPress={() => router.push('/ingresar')}
-          style={({ pressed }) => [
-            styles.boton,
-            { backgroundColor: theme.text },
-            pressed && styles.presionado,
-          ]}
-        >
-          <ThemedText type="smallBold" style={{ color: theme.background }}>
-            Ingresar
-          </ThemedText>
-        </Pressable>
-      </ThemedView>
-    );
-  }
-
   return (
     <ThemedView style={styles.pantalla}>
       <ScrollView contentContainerStyle={styles.contenido}>
@@ -152,7 +127,64 @@ export default function RecorridoScreen() {
           <ThemedText themeColor="textSecondary">Los lugares que visitaste.</ThemedText>
         </View>
 
-        {error ? (
+        <View style={styles.acciones}>
+          {usuarioId ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Registrar visita"
+              onPress={() => router.push('/registrar-visita')}
+              style={({ pressed }) => [
+                styles.botonAccion,
+                { backgroundColor: theme.text },
+                pressed && styles.presionado,
+              ]}
+            >
+              <ThemedText type="smallBold" style={{ color: theme.background }}>
+                Registrar visita
+              </ThemedText>
+            </Pressable>
+          ) : null}
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Escanear QR"
+            onPress={() => router.push('/escanear-qr')}
+            style={({ pressed }) => [
+              styles.botonAccion,
+              styles.botonSecundario,
+              { borderColor: theme.backgroundSelected },
+              pressed && styles.presionado,
+            ]}
+          >
+            <ThemedText type="smallBold">Escanear QR</ThemedText>
+          </Pressable>
+        </View>
+
+        {!usuarioId ? (
+          <ThemedView type="backgroundElement" style={styles.aviso}>
+            <Ionicons name="person-circle-outline" size={64} color={theme.textSecondary} />
+            <ThemedText type="smallBold">Ingresá para ver tu recorrido.</ThemedText>
+            <ThemedText themeColor="textSecondary" style={styles.centrado}>
+              Las visitas se guardan en tu cuenta.
+            </ThemedText>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Ingresar"
+              onPress={() => router.push('/ingresar')}
+              style={({ pressed }) => [
+                styles.boton,
+                { backgroundColor: theme.text },
+                pressed && styles.presionado,
+              ]}
+            >
+              <ThemedText type="smallBold" style={{ color: theme.background }}>
+                Ingresar
+              </ThemedText>
+            </Pressable>
+          </ThemedView>
+        ) : null}
+
+        {usuarioId && error ? (
           <ThemedView type="backgroundElement" style={styles.aviso}>
             <ThemedText type="smallBold">{error}</ThemedText>
             <Pressable
@@ -172,7 +204,7 @@ export default function RecorridoScreen() {
           </ThemedView>
         ) : null}
 
-        {!error && items.length === 0 ? (
+        {usuarioId && !error && items.length === 0 ? (
           <ThemedView type="backgroundElement" style={styles.aviso}>
             <Ionicons name="footsteps-outline" size={48} color={theme.textSecondary} />
             <ThemedText type="smallBold">Todavía no registraste visitas.</ThemedText>
@@ -181,8 +213,8 @@ export default function RecorridoScreen() {
             </ThemedText>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Escanear un lugar"
-              onPress={() => router.push('/escanear-qr')}
+              accessibilityLabel="Registrar visita"
+              onPress={() => router.push('/registrar-visita')}
               style={({ pressed }) => [
                 styles.boton,
                 { backgroundColor: theme.text },
@@ -190,13 +222,13 @@ export default function RecorridoScreen() {
               ]}
             >
               <ThemedText type="smallBold" style={{ color: theme.background }}>
-                Escanear un lugar
+                Registrar visita
               </ThemedText>
             </Pressable>
           </ThemedView>
         ) : null}
 
-        {items.length > 0 ? (
+        {usuarioId && items.length > 0 ? (
           <View style={styles.lista}>
             {items.map(({ visita, lugar }) => {
               const colorEstado = visita.sincronizada ? '#2E7D32' : '#B26A00';
@@ -209,7 +241,16 @@ export default function RecorridoScreen() {
                     onPress={() => abrirLugar(lugar.id)}
                     style={({ pressed }) => [styles.filaInfo, pressed && styles.presionado]}
                   >
-                    <Ionicons name="location-outline" size={22} color={theme.textSecondary} />
+                    {visita.fotoUri ? (
+                      <Image
+                        source={visita.fotoUri}
+                        style={styles.foto}
+                        contentFit="cover"
+                        accessibilityLabel={`Foto de ${lugar.nombre}`}
+                      />
+                    ) : (
+                      <Ionicons name="location-outline" size={22} color={theme.textSecondary} />
+                    )}
                     <View style={styles.textos}>
                       <ThemedText type="smallBold">{lugar.nombre}</ThemedText>
                       <ThemedText type="small" themeColor="textSecondary">
@@ -247,6 +288,7 @@ export default function RecorridoScreen() {
   );
 }
 
+
 const styles = StyleSheet.create({
   pantalla: { flex: 1 },
   contenido: {
@@ -258,6 +300,7 @@ const styles = StyleSheet.create({
     gap: Spacing.four,
   },
   encabezado: { gap: Spacing.two },
+  acciones: { flexDirection: 'row', gap: Spacing.two },
   lista: { gap: Spacing.two },
   fila: {
     borderRadius: 14,
@@ -269,6 +312,7 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
     padding: Spacing.three,
   },
+  foto: { width: 48, height: 48, borderRadius: 8 },
   textos: { flex: 1, gap: 2 },
   estadoFila: {
     flexDirection: 'row',
@@ -289,6 +333,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: Spacing.four,
   },
+  botonAccion: {
+    flex: 1,
+    minHeight: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.two,
+  },
+  botonSecundario: { borderWidth: 1 },
   presionado: { opacity: 0.6 },
   centrado: { textAlign: 'center' },
   centro: {
