@@ -141,7 +141,7 @@ export default function IngresarScreen() {
           <View style={styles.formulario}>
             <ThemedText type="subtitle">Tu cuenta</ThemedText>
             <ThemedText themeColor="textSecondary">
-              Ingresá para guardar favoritos y registrar tus visitas.
+              Ingresá para guardar favoritos, eventos y tu recorrido.
             </ThemedText>
 
             <View style={styles.campo}>
