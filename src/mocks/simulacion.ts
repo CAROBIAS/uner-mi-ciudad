@@ -10,7 +10,7 @@
 
 export type ModoSimulacion = 'normal' | 'sinDatos' | 'sinConexion';
 
-export const MODO_SIMULACION: ModoSimulacion = 'sinConexion';
+export const MODO_SIMULACION: ModoSimulacion = 'normal';
 
 // Demora simulada de cada respuesta, en milisegundos.
 // Sirve para que se vean los mensajes de "Cargando...".
