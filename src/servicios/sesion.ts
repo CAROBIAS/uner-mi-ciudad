@@ -1,3 +1,5 @@
+import * as SecureStore from 'expo-secure-store';
+
 import type { CuentaPrueba } from '@/mocks/usuarios';
 import { cuentasPrueba } from '@/mocks/usuarios';
 import type { Usuario } from '@/tipos';
@@ -26,8 +28,8 @@ export type Sesion = {
   token: string;
 };
 
-// El token queda en memoria hasta el paso de expo-secure-store
-let tokenActual: string | null = null;
+// El token va a almacenamiento seguro del sistema, nunca a kv-store
+const CLAVE_TOKEN = 'token-sesion';
 
 function buscarCuenta(email: string, contrasena: string): CuentaPrueba | undefined {
   const correo = email.trim().toLowerCase();
@@ -42,14 +44,14 @@ export async function ingresar(email: string, contrasena: string): Promise<Sesio
   const cuenta = buscarCuenta(email, contrasena);
   if (!cuenta) throw new ErrorSesion('CREDENCIALES_INVALIDAS');
 
-  tokenActual = cuenta.token;
+  await SecureStore.setItemAsync(CLAVE_TOKEN, cuenta.token);
   return { usuario: cuenta.usuario, token: cuenta.token };
 }
 
 export async function cerrarSesion(): Promise<void> {
-  tokenActual = null;
+  await SecureStore.deleteItemAsync(CLAVE_TOKEN);
 }
 
 export async function obtenerToken(): Promise<string | null> {
-  return tokenActual;
+  return SecureStore.getItemAsync(CLAVE_TOKEN);
 }

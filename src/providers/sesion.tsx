@@ -1,4 +1,10 @@
 import {
+    borrarUsuarioGuardado,
+    guardarUsuario,
+    obtenerUsuarioGuardado,
+} from '@/almacenamiento/preferencias';
+
+import {
     createContext,
     useCallback,
     useEffect,
@@ -29,17 +35,32 @@ export const SesionContext = createContext<ValorSesion | null>(null);
 export function SesionProvider({ children }: PropsWithChildren) {
     const [estado, setEstado] = useState<EstadoSesion>('cargando');
     const [usuario, setUsuario] = useState<Usuario | null>(null);
+
     // Si hay token guardado la sesion sigue abierta al reabrir app
     useEffect(() => {
         let activo = true;
 
-        obtenerToken()
-            .then((token) => {
-                if (activo) setEstado(token ? 'conSesion' : 'invitado');
-            })
-            .catch(() => {
+        async function restaurar() {
+            try {
+                const [token, usuarioGuardado] = await Promise.all([
+                    obtenerToken(),
+                    obtenerUsuarioGuardado(),
+                ]);
+
+                if (!activo) return;
+
+                if (token && usuarioGuardado) {
+                    setUsuario(usuarioGuardado);
+                    setEstado('conSesion');
+                } else {
+                    setEstado('invitado');
+                }
+            } catch {
                 if (activo) setEstado('invitado');
-            });
+            }
+        }
+
+        void restaurar();
 
         return () => {
             activo = false;
@@ -48,12 +69,14 @@ export function SesionProvider({ children }: PropsWithChildren) {
 
     const ingresar = useCallback(async (email: string, contrasena: string) => {
         const sesion = await ingresarServicio(email, contrasena);
+        await guardarUsuario(sesion.usuario);
         setUsuario(sesion.usuario);
         setEstado('conSesion');
     }, []);
 
     const cerrarSesion = useCallback(async () => {
         await cerrarSesionServicio();
+        await borrarUsuarioGuardado().catch(() => undefined);
         setUsuario(null);
         setEstado('invitado');
     }, []);
