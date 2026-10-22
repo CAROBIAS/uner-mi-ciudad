@@ -1,3 +1,4 @@
+import { hayInternet } from '@/almacenamiento/red';
 import { DEMORA_MS, MODO_SIMULACION } from '@/mocks/simulacion';
 
 // Errores con nombre claro que pueden devolver los servicios.
@@ -30,8 +31,8 @@ export class ErrorServicio extends Error {
 // Simula la demora de la red y el modo "sin conexión" (ver src/mocks/simulacion.ts).
 export async function simularRed(): Promise<void> {
   await new Promise((resolver) => setTimeout(resolver, DEMORA_MS));
-  if (MODO_SIMULACION === 'sinConexion') {
-    throw new ErrorServicio('SIN_CONEXION');
+    if (MODO_SIMULACION === 'sinConexion' || !(await hayInternet())) {
+      throw new ErrorServicio('SIN_CONEXION');
   }
 }
 

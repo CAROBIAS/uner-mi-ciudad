@@ -36,6 +36,7 @@ import {
   listarVisitasPendientes,
   marcarVisitaSubida,
 } from '@/almacenamiento/visitas';
+import { File, Paths } from 'expo-file-system';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { obtenerLugar } from '@/servicios/lugares';
@@ -123,14 +124,36 @@ async function probarAvisos(): Promise<string[]> {
 
 async function probarArchivos(): Promise<string[]> {
   const l: string[] = ['— ARCHIVOS —'];
-  const ruta = await guardarFotoVisita('file:///temporal/foto.jpg');
-  l.push(`Foto guardada en: ${ruta} (provisorio: la misma ruta)`);
-  const molino = await obtenerLugar('lug-004');
-  await descargarLugar(molino);
-  l.push(`Lugares descargados: ${(await listarDescargas()).length} (esperado 1)`);
-  l.push(`¿lug-004 tiene audio?: ${(await obtenerDescarga('lug-004'))?.audioUri ? 'sí' : 'no'} (esperado sí)`);
-  await eliminarDescarga('lug-004');
-  l.push(`Descargados tras eliminar: ${(await listarDescargas()).length} (esperado 0)`);
+
+  // 1. Foto: se crea un archivo temporal y se guarda como foto de visita.
+  const temporal = new File(Paths.cache, 'foto-prueba.jpg');
+  temporal.create({ overwrite: true });
+  await temporal.write('foto de prueba');
+  const ruta = await guardarFotoVisita(temporal.uri);
+  l.push(`Foto copiada a lugar permanente: ${new File(ruta).exists && ruta !== temporal.uri} (esperado true)`);
+
+  // 2. Descarga que QUEDA guardada (para probar en modo avión): lug-004.
+  if (!(await obtenerDescarga('lug-004'))) {
+    await descargarLugar(await obtenerLugar('lug-004'));
+  }
+  const molino = await obtenerDescarga('lug-004');
+  const audioExiste = molino?.audioUri ? new File(molino.audioUri).exists : false;
+  const megas = ((molino?.bytes ?? 0) / 1024 / 1024).toFixed(1);
+  l.push(
+    `lug-004 guardado: audio ${audioExiste ? 'sí' : 'no'}, ${molino?.imagenes.length ?? 0} foto(s), ${megas} MB (esperado: audio sí, 1 foto, más de 0 MB)`,
+  );
+
+  // 3. Descargar y eliminar: lug-009 (una sola foto). Sin internet no se puede descargar.
+  try {
+    await descargarLugar(await obtenerLugar('lug-009'));
+    l.push(
+      `¿lug-009 en la lista de descargas?: ${(await listarDescargas()).some((d) => d.lugarId === 'lug-009')} (esperado true)`,
+    );
+    await eliminarDescarga('lug-009');
+    l.push(`¿lug-009 después de eliminarlo?: ${(await obtenerDescarga('lug-009')) !== null} (esperado false)`);
+  } catch (error) {
+    l.push(`lug-009: falló → ${String(error)}`);
+  }
   return l;
 }
 
