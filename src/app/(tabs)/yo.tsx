@@ -15,7 +15,7 @@ import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useSesion } from '@/hooks/use-sesion';
 import { useTheme } from '@/hooks/use-theme';
 
-type NombreIcono = 'heart-outline' | 'settings-outline' | 'finger-print-outline';
+type NombreIcono = 'heart-outline' | 'download-outline' | 'settings-outline' | 'finger-print-outline';
 
 function iniciales(nombre: string): string {
   const partes = nombre.trim().split(/\s+/).filter(Boolean);
@@ -91,7 +91,7 @@ export default function YoScreen() {
             <Ionicons name="person-circle-outline" size={64} color={theme.textSecondary} />
             <ThemedText type="subtitle">Invitado</ThemedText>
             <ThemedText themeColor="textSecondary" style={styles.centrado}>
-              Ingresá para guardar favoritos y registrar tus visitas.
+              Ingresá para guardar favoritos, eventos y tu recorrido.
             </ThemedText>
             <Pressable
               accessibilityRole="button"
@@ -157,6 +157,12 @@ export default function YoScreen() {
                 icono="settings-outline"
                 texto="Preferencias"
                 onPress={() => router.push('/preferencias')}
+              />
+              <View style={[styles.separador, { backgroundColor: theme.backgroundSelected }]} />
+              <Fila
+                icono="download-outline"
+                texto="Descargas"
+                onPress={() => router.push('/descargas')}
               />
               <View style={[styles.separador, { backgroundColor: theme.backgroundSelected }]} />
               <Fila
