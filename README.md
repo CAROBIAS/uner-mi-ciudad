@@ -204,7 +204,9 @@ rutas se actualiza recién al iniciar Expo.
 > ✅ `red` detecta de verdad si hay internet, y aparece una franja **"Sin conexión"** arriba en toda la app.
 > ✅ **Sin señal**, `obtenerLugares()`, `obtenerLugar(id)` y `obtenerCategorias()` devuelven la
 > última copia guardada. Las pantallas no tienen que hacer nada especial.
-> ⚠️ **Sigue provisorio:** `archivos` (no copia archivos todavía).
+> ✅ `archivos` guarda de verdad: `guardarFotoVisita` copia la foto a una carpeta permanente,
+> y `descargarLugar` baja audioguía y fotos para usarlas sin señal (`obtenerDescarga` funciona sin internet).
+> `descargarLugar` necesita internet: si falla, lanza un error y no deja nada a medias.
 
 | Archivo | Funciones |
 |---|---|
