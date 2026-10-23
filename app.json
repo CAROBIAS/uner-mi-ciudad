@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "uner-mi-ciudad",
+    "name": "UNER Grupo 4",
     "slug": "uner-mi-ciudad",
+    "owner": "unermobilesgrupo4",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -11,6 +12,7 @@
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "uner.grupo4.miciudad",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -39,6 +41,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0b5df950-591a-4441-82ef-a97b58a89e6e"
+      }
     }
   }
 }
