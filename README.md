@@ -391,3 +391,38 @@ en Registrar visita e Integrante 6 en Guardar evento.
   guardado del Integrante 2).
 - Registro: la consigna pide "Registro e ingreso"; falta definición de cátedra.
 - API real: reemplazar las cuentas de prueba y manejar "no autorizado".
+
+
+----------------------------------------------------------------------------------------------------------
+
+## 12. Versión instalable (APK)
+
+El APK se arma con **EAS Build** en los servidores de Expo (no hace falta Android Studio).
+**Solo el responsable de la entrega lanza builds** (hay un cupo de 15 por mes).
+Si necesitás probar algo en el APK, pedilo. El registro está en `BUILDS.md`.
+
+Para su trabajo diario **siguen usando Expo Go**: nada de esto cambia cómo trabajan.
+
+### ⚠️ Datos que NO se modifican
+
+En `app.json`:
+```json
+"owner": "unermobilesgrupo4",
+"android": { "package": "uner.grupo4.miciudad", ... },
+"extra": { "eas": { "projectId": "0b5df950-591a-4441-82ef-a97b58a89e6e" } }
+```
+
+Y el archivo **`eas.json`** completo.
+
+- Instalar paquetes con `npx expo install` **sí** puede agregar cosas a `app.json`
+  (por ejemplo, un plugin nuevo en `"plugins"`). Eso está bien.
+- Lo que no se toca son los valores de arriba. Si se cambian, el build falla.
+
+### Cómo instalar el APK en un celular
+
+1. Abrir en el celular el link del build (lo pasa el responsable).
+2. Descargar el archivo `.apk` y tocarlo.
+3. Si Android lo pide, permitir **"instalar apps desconocidas"** para el navegador.
+4. Si aparece Google Play Protect: **Más detalles → Instalar de todas formas**
+   (es normal: la app no está en la Play Store).
+5. Abrir la app **"UNER Grupo 4"** desde su ícono (no desde Expo Go).
