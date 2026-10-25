@@ -5,17 +5,11 @@ import {
   leerCopiaLugar,
   leerCopiaLugares,
 } from '@/almacenamiento/copia-catalogo';
-import { categoriasMock } from '@/mocks/categorias';
-import { lugaresMock } from '@/mocks/lugares';
 import type { Categoria, Lugar } from '@/tipos';
 
-import { ErrorServicio, simularRed, simularSinDatos } from './comun';
+import { ErrorServicio, pedir, pedirTodos } from './comun';
 
-// "Puerta" de acceso a los datos de lugares.
-// HOY: responde con datos de prueba.
-// CUANDO LLEGUE LA API: se reemplaza el interior de cada función por un fetch.
-// Las pantallas no cambian.
-//
+// "Puerta" de acceso a los datos de lugares: pide a la API publicada.
 // SIN SEÑAL (Integrante 2): cada respuesta se guarda como copia en el celular.
 // Si no hay conexión, se devuelve esa copia. Si no hay copia, error SIN_CONEXION.
 
@@ -25,21 +19,19 @@ function esSinConexion(error: unknown): boolean {
   return error instanceof ErrorServicio && error.codigo === 'SIN_CONEXION';
 }
 
-// Si falla guardar la copia, no debe fallar la pantalla: solo se pierde la copia esta vez.
+// Si falla guardar la copia, no debe fallar la pantalla.
 async function intentarGuardar(guardar: () => Promise<void>): Promise<void> {
   try {
     await guardar();
   } catch (error) {
-    // La pantalla sigue funcionando, pero el problema queda visible en la terminal.
     console.warn('No se pudo guardar la copia para usar sin señal:', error);
   }
 }
 
 export async function obtenerLugares(): Promise<Lugar[]> {
   try {
-    await simularRed();
-    if (simularSinDatos()) return [];
-    const lugares = lugaresMock.filter((lugar) => lugar.activo);
+    // La API ya devuelve solo los activos. Hasta 500 por página: todo el catálogo de una vez.
+    const lugares = await pedirTodos<Lugar>('/lugares', { porPagina: 500 });
     await intentarGuardar(() => guardarCopiaLugares(lugares));
     return lugares;
   } catch (error) {
@@ -53,12 +45,10 @@ export async function obtenerLugares(): Promise<Lugar[]> {
 
 export async function obtenerLugar(id: string): Promise<Lugar> {
   try {
-    await simularRed();
-    const lugar = simularSinDatos()
-      ? undefined
-      : lugaresMock.find((l) => l.id === id && l.activo);
-    if (!lugar) throw new ErrorServicio('LUGAR_NO_ENCONTRADO');
-    return lugar;
+    const { datos } = await pedir<Lugar>(`/lugares/${encodeURIComponent(id)}`);
+    // La API devuelve también los dados de baja: para la app no existen.
+    if (!datos.activo) throw new ErrorServicio('LUGAR_NO_ENCONTRADO');
+    return datos;
   } catch (error) {
     if (esSinConexion(error)) {
       const copia = await leerCopiaLugar(id);
@@ -70,11 +60,10 @@ export async function obtenerLugar(id: string): Promise<Lugar> {
 
 export async function obtenerCategorias(): Promise<Categoria[]> {
   try {
-    await simularRed();
-    if (simularSinDatos()) return [];
-    const categorias = [...categoriasMock].sort((a, b) => a.orden - b.orden);
-    await intentarGuardar(() => guardarCopiaCategorias(categorias));
-    return categorias;
+    const categorias = await pedirTodos<Categoria>('/categorias');
+    const ordenadas = [...categorias].sort((a, b) => a.orden - b.orden);
+    await intentarGuardar(() => guardarCopiaCategorias(ordenadas));
+    return ordenadas;
   } catch (error) {
     if (esSinConexion(error)) {
       const copia = await leerCopiaCategorias();
@@ -86,11 +75,17 @@ export async function obtenerCategorias(): Promise<Categoria[]> {
 
 export async function buscarLugarPorQr(textoQr: string): Promise<Lugar> {
   // Un QR ajeno se detecta sin necesidad de red.
-  if (!textoQr.startsWith(PREFIJO_QR)) throw new ErrorServicio('QR_INVALIDO');
-  await simularRed();
-  const lugar = simularSinDatos()
-    ? undefined
-    : lugaresMock.find((l) => l.codigoQr === textoQr && l.activo);
-  if (!lugar) throw new ErrorServicio('LUGAR_NO_ENCONTRADO');
-  return lugar;
+  if (!textoQr.trim().startsWith(PREFIJO_QR)) throw new ErrorServicio('QR_INVALIDO');
+  try {
+    const { datos } = await pedir<Lugar>(`/lugares/qr/${encodeURIComponent(textoQr)}`);
+    if (!datos.activo) throw new ErrorServicio('LUGAR_NO_ENCONTRADO');
+    return datos;
+  } catch (error) {
+    // Con el formato correcto pero sin lugar, la API dice QR_NO_RECONOCIDO:
+    // para la app es "no existe ese lugar" (como prometía el contrato).
+    if (error instanceof ErrorServicio && error.codigo === 'QR_INVALIDO') {
+      throw new ErrorServicio('LUGAR_NO_ENCONTRADO');
+    }
+    throw error;
+  }
 }
