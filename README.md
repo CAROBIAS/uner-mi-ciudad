@@ -426,3 +426,47 @@ Y el archivo **`eas.json`** completo.
 4. Si aparece Google Play Protect: **Más detalles → Instalar de todas formas**
    (es normal: la app no está en la Play Store).
 5. Abrir la app **"UNER Grupo 4"** desde su ícono (no desde Expo Go).
+
+
+---------------------------------------------------------------------------------------------
+
+## 13. API de la cátedra (publicada)
+
+La app usa **siempre** la API publicada:
+
+**`https://api-mi-ciudad.onrender.com`**
+
+- Base de datos: **PostgreSQL en Supabase**. Fotos: almacenamiento de Supabase.
+- Responde desde cualquier red (wifi o datos móviles). **No hace falta levantar nada en la compu.**
+- Para ver los datos crudos, abrir en el navegador, por ejemplo:
+  `https://api-mi-ciudad.onrender.com/lugares` o `/categorias` o `/eventos`.
+- Las cuentas (Render y Supabase) las administra el responsable de la entrega.
+
+### ⚠️ Se duerme
+- El plan gratis de Render **se duerme a los 15 minutos sin uso**. El primer pedido
+  después de eso puede tardar **cerca de un minuto**: su pantalla **tiene que mostrar
+  "Cargando..."** y no quedarse en blanco ni dar error.
+- Supabase **se pausa tras una semana sin uso** (lo reactiva el responsable).
+
+### Usuarios de prueba de la API
+
+| Email | Contraseña | Para probar |
+|---|---|---|
+| `lucia@mail.com` | `lucia1234` | Usuaria con datos: 3 favoritos, 4 visitas (`vis-311` con foto y nota), 1 evento guardado (`evt-017`) |
+| `nuevo@demo.ar` | `nuevo1234` | Usuario sin nada: para ver las listas vacías |
+
+### Los datos de la API NO son los de los mocks
+Si probaron su pantalla con un id de los mocks, puede no existir en la API. Casos raros de la API:
+- `lug-025`: nombre y descripción larguísimos · `lug-003`: sin fotos · varios sin teléfono
+- `lug-026`: dado de baja (no debe aparecer) · `lug-009` (anfiteatro): sin horarios
+- `cat-bodegas`: categoría sin lugares
+
+### Los mocks
+`src/mocks/` **se conserva** para mostrar en la defensa cómo se trabajó mientras no había API,
+pero **la app no los usa**. No los borren ni los importen en sus pantallas.
+
+### ¿Qué cambia para cada uno?
+- **Nada en las pantallas:** siguen pidiendo los datos a `src/servicios/` con las mismas funciones.
+  El responsable cambia el interior de la "puerta" para que pida a la API.
+- **Integrante 3:** el ingreso real es `POST /auth/ingreso` y ya existe **Registro** (`POST /auth/registro`).
+- **Favoritos, visitas y eventos guardados:** se sincronizan con la API (lo hace el responsable del guardado).
