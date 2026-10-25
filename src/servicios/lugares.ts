@@ -86,6 +86,12 @@ export async function buscarLugarPorQr(textoQr: string): Promise<Lugar> {
     if (error instanceof ErrorServicio && error.codigo === 'QR_INVALIDO') {
       throw new ErrorServicio('LUGAR_NO_ENCONTRADO');
     }
+    // Sin señal: el texto del QR ya trae el id del lugar, se busca en la copia guardada.
+    if (esSinConexion(error)) {
+      const texto = textoQr.trim();
+      const copia = await leerCopiaLugar(texto.slice(PREFIJO_QR.length));
+      if (copia && copia.codigoQr === texto) return copia;
+    }
     throw error;
   }
 }
