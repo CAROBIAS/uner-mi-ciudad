@@ -2,6 +2,7 @@ import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'ex
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { crearVisita } from '@/almacenamiento/visitas';
 import { ThemedText } from '@/components/themed-text';
@@ -35,6 +36,7 @@ export default function EscanearQrScreen() {
   const [estado, setEstado] = useState<Estado>({ tipo: 'escaneando' });
   // La cámara puede avisar varias veces el mismo código en un segundo: se procesa uno solo.
   const leyendo = useRef(false);
+  const insets = useSafeAreaInsets();
 
   async function alLeerCodigo({ data }: BarcodeScanningResult) {
     if (leyendo.current) return;
@@ -102,7 +104,7 @@ export default function EscanearQrScreen() {
         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
         onBarcodeScanned={estado.tipo === 'escaneando' ? alLeerCodigo : undefined}
       />
-      <ThemedView style={styles.panel}>
+      <ThemedView style={[styles.panel, { marginBottom: 16 + insets.bottom }]}>
         {estado.tipo === 'escaneando' && (
           <ThemedText style={styles.textoCentrado}>Apuntá al código QR del cartel.</ThemedText>
         )}
