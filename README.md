@@ -470,3 +470,22 @@ pero **la app no los usa**. No los borren ni los importen en sus pantallas.
   El responsable cambia el interior de la "puerta" para que pida a la API.
 - **Integrante 3:** el ingreso real es `POST /auth/ingreso` y ya existe **Registro** (`POST /auth/registro`).
 - **Favoritos, visitas y eventos guardados:** se sincronizan con la API (lo hace el responsable del guardado).
+
+### Pedidos que envían datos o necesitan cuenta
+`pedir()` de `src/servicios/comun.ts` acepta un tercer dato opcional:
+```ts
+import { pedir } from '@/servicios/comun';
+import { obtenerToken } from '@/servicios/sesion';
+
+// Enviar datos (por ejemplo, el ingreso):
+const { datos } = await pedir<{ token: string; usuario: Usuario }>('/auth/ingreso', undefined, {
+  metodo: 'POST',
+  cuerpo: { email, contrasena },
+});
+
+// Algo que pide cuenta (el token se pasa explícito):
+const { datos: yo } = await pedir<Usuario>('/yo', undefined, { token: await obtenerToken() });
+```
+Si falla, lanza `ErrorServicio` con `codigo` (`CREDENCIALES_INVALIDAS`, `EMAIL_YA_REGISTRADO`,
+`VALIDACION_FALLIDA`, `NO_AUTORIZADO`, `SIN_CONEXION`...) y `message` listo para mostrar
+(viene de la API, por ejemplo *"La contraseña tiene que tener al menos 8 caracteres."*).

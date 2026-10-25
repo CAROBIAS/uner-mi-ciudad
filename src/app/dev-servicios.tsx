@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { ErrorServicio } from '@/servicios/comun';
+import { ErrorServicio, pedir } from '@/servicios/comun';
 import { obtenerEvento, obtenerEventos } from '@/servicios/eventos';
 import {
   buscarLugarPorQr,
@@ -21,6 +21,50 @@ async function probar(nombre: string, prueba: () => Promise<string>): Promise<st
     if (error instanceof ErrorServicio) return `⚠️ ${nombre}: ${error.codigo}`;
     return `❌ ${nombre}: error inesperado`;
   }
+}
+
+// Pedidos con cuenta contra la API real (tarea 4.4). Solo de prueba: no usa el ingreso de la app.
+async function probarCuenta(): Promise<string[]> {
+  const l: string[] = ['— CUENTA (API) —'];
+  const ingreso = (email: string, contrasena: string) =>
+    pedir<{ token: string; usuario: { nombre: string } }>('/auth/ingreso', undefined, {
+      metodo: 'POST',
+      cuerpo: { email, contrasena },
+    });
+
+  l.push(
+    await probar('Ingreso con contraseña incorrecta', async () => {
+      await ingreso('lucia@mail.com', 'clave-incorrecta');
+      return 'entró (NO debería)';
+    }),
+  );
+
+  let token: string | null = null;
+  l.push(
+    await probar('Ingreso de Lucía', async () => {
+      const { datos } = await ingreso('lucia@mail.com', 'lucia1234');
+      token = datos.token;
+      return datos.usuario.nombre;
+    }),
+  );
+  l.push(
+    await probar('/yo con token', async () =>
+      (await pedir<{ nombre: string }>('/yo', undefined, { token })).datos.nombre,
+    ),
+  );
+  l.push(
+    await probar('/yo sin token', async () => (await pedir<{ nombre: string }>('/yo')).datos.nombre),
+  );
+  l.push(
+    await probar('Registro con email ya usado', async () => {
+      await pedir('/auth/registro', undefined, {
+        metodo: 'POST',
+        cuerpo: { nombre: 'Prueba', email: 'lucia@mail.com', contrasena: 'una-clave-segura' },
+      });
+      return 'registró (NO debería)';
+    }),
+  );
+  return l;
 }
 
 export default function DevServiciosScreen() {
@@ -41,7 +85,7 @@ export default function DevServiciosScreen() {
       probar('Evento evt-017', async () => (await obtenerEvento('evt-017')).titulo),
       probar('QR COLON:lug-004', async () => (await buscarLugarPorQr('COLON:lug-004')).nombre),
       probar('QR "hola"', async () => (await buscarLugarPorQr('hola')).nombre),
-    ]).then(setResultados);
+      ]).then(async (lineas) => setResultados([...lineas, ...(await probarCuenta())]));
   }, []);
 
   return (
