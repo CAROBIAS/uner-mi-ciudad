@@ -31,14 +31,14 @@ export default function DevServiciosScreen() {
     const enSieteDias = new Date(ahora.getTime() + 7 * 24 * 60 * 60 * 1000);
 
     Promise.all([
-      probar('Lugares', async () => `${(await obtenerLugares()).length} (esperado 12)`),
-      probar('Categorías', async () => `${(await obtenerCategorias()).length} (esperado 7)`),
+      probar('Lugares (activos en la API)', async () => `${(await obtenerLugares()).length}`),
+      probar('Categorías', async () => `${(await obtenerCategorias()).length}`),
       probar('Lugar lug-004', async () => (await obtenerLugar('lug-004')).nombre),
-      probar('Lugar dado de baja lug-013', async () => (await obtenerLugar('lug-013')).nombre),
+      probar('Lugar dado de baja lug-026', async () => (await obtenerLugar('lug-026')).nombre),
       probar('Eventos próximos 7 días', async () =>
         `${(await obtenerEventos(ahora.toISOString(), enSieteDias.toISOString())).length}`,
       ),
-      probar('Evento evt-002', async () => (await obtenerEvento('evt-002')).inicio),
+      probar('Evento evt-017', async () => (await obtenerEvento('evt-017')).titulo),
       probar('QR COLON:lug-004', async () => (await buscarLugarPorQr('COLON:lug-004')).nombre),
       probar('QR "hola"', async () => (await buscarLugarPorQr('hola')).nombre),
     ]).then(setResultados);
