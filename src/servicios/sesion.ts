@@ -1,51 +1,25 @@
 import * as SecureStore from 'expo-secure-store';
 
-import type { CuentaPrueba } from '@/mocks/usuarios';
-import { cuentasPrueba } from '@/mocks/usuarios';
 import type { Usuario } from '@/tipos';
 
-import { simularRed } from './comun';
+import { pedir } from './comun';
 
-// Mismo formato que ErrorServicio
-export type CodigoErrorSesion = 'CREDENCIALES_INVALIDAS';
-
-const MENSAJES: Record<CodigoErrorSesion, string> = {
-  CREDENCIALES_INVALIDAS: 'El email o la contraseña no son correctos.',
-};
-
-export class ErrorSesion extends Error {
-  codigo: CodigoErrorSesion;
-
-  constructor(codigo: CodigoErrorSesion) {
-    super(MENSAJES[codigo]);
-    this.name = 'ErrorSesion';
-    this.codigo = codigo;
-  }
-}
+// El token va a almacenamiento seguro del sistema, nunca a kv-store
+const CLAVE_TOKEN = 'token-sesion';
 
 export type Sesion = {
   usuario: Usuario;
   token: string;
 };
 
-// El token va a almacenamiento seguro del sistema, nunca a kv-store
-const CLAVE_TOKEN = 'token-sesion';
-
-function buscarCuenta(email: string, contrasena: string): CuentaPrueba | undefined {
-  const correo = email.trim().toLowerCase();
-  return cuentasPrueba.find(
-    (cuenta) => cuenta.email.toLowerCase() === correo && cuenta.contrasena === contrasena,
-  );
-}
-
 export async function ingresar(email: string, contrasena: string): Promise<Sesion> {
-  await simularRed();
+  const { datos } = await pedir<Sesion>('/auth/ingreso', undefined, {
+    metodo: 'POST',
+    cuerpo: { email: email.trim(), contrasena },
+  });
 
-  const cuenta = buscarCuenta(email, contrasena);
-  if (!cuenta) throw new ErrorSesion('CREDENCIALES_INVALIDAS');
-
-  await SecureStore.setItemAsync(CLAVE_TOKEN, cuenta.token);
-  return { usuario: cuenta.usuario, token: cuenta.token };
+  await SecureStore.setItemAsync(CLAVE_TOKEN, datos.token);
+  return datos;
 }
 
 export async function cerrarSesion(): Promise<void> {
