@@ -18,7 +18,6 @@ import { Spacing } from '@/constants/theme';
 import { useSesion } from '@/hooks/use-sesion';
 import { useTheme } from '@/hooks/use-theme';
 import { ErrorServicio } from '@/servicios/comun';
-import { ErrorSesion } from '@/servicios/sesion';
 
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -83,7 +82,7 @@ export default function IngresarScreen() {
       await ingresar(email.trim(), contrasena);
       volver();
     } catch (error) {
-      if (error instanceof ErrorSesion || error instanceof ErrorServicio) {
+      if (error instanceof ErrorServicio) {
         setErrorGeneral(error.message);
       } else {
         setErrorGeneral('No se pudo ingresar. Intentá de nuevo.');

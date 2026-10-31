@@ -382,17 +382,6 @@ en Registrar visita e Integrante 6 en Guardar evento.
     la UI queda pendiente de la estrella (Integrante 4) y Registrar visita
     (Integrante 1).
 
-### 11.9 Pendientes conocidos
-
-- Integrar la estrella en la ficha y la tarjeta de lugar en Favoritos (Integrante 4).
-- Usar el bloqueo en Registrar visita y Guardar evento (Integrantes 1 y 6).
-- Aplicar el tema elegido en Preferencias (Integrante 6).
-- Aviso de evento cancelado (depende de los avisos del Integrante 6 y del
-  guardado del Integrante 2).
-- Registro: la consigna pide "Registro e ingreso"; falta definición de cátedra.
-- API real: reemplazar las cuentas de prueba y manejar "no autorizado".
-
-
 ----------------------------------------------------------------------------------------------------------
 
 ## 12. Versión instalable (APK)
