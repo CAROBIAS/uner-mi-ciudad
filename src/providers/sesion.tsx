@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import {
     borrarUsuarioGuardado,
     guardarUsuario,
@@ -20,6 +21,7 @@ import {
 } from '@/servicios/sesion';
 import { biometriaPreparada, pedirBiometria } from '@/servicios/biometria';
 import type { Usuario } from '@/tipos';
+import { ErrorServicio } from '@/servicios/comun';
 
 // cargando: leyendo el token, bloqueado: falta huella o rostro, conSesion: token valido
 export type EstadoSesion = 'cargando' | 'invitado' | 'bloqueado' | 'conSesion';
@@ -30,6 +32,7 @@ export type ValorSesion = {
     ingresar: (email: string, contrasena: string) => Promise<void>;
     desbloquear: () => Promise<boolean>;
     cerrarSesion: () => Promise<void>;
+    ejecutarConToken: <T>(operacion: () => Promise<T>) => Promise<T>;
 };
 
 export const SesionContext = createContext<ValorSesion | null>(null);
@@ -105,9 +108,24 @@ export function SesionProvider({ children }: PropsWithChildren) {
         setEstado('invitado');
     }, []);
 
+    const ejecutarConToken = useCallback(async <T,>(operacion: () => Promise<T>): Promise<T> => {
+        try {
+            return await operacion();
+        } catch (error) {
+            if (error instanceof ErrorServicio && error.codigo === 'NO_AUTORIZADO') {
+                await cerrarSesionServicio();
+                await borrarUsuarioGuardado().catch(() => undefined);
+                setUsuario(null);
+                setEstado('invitado');
+                router.replace('/ingresar');
+            }
+            throw error;
+        }
+    }, []);
+
     const valor = useMemo(
-        () => ({ estado, usuario, ingresar, desbloquear, cerrarSesion }),
-        [estado, usuario, ingresar, desbloquear, cerrarSesion],
+        () => ({ estado, usuario, ingresar, desbloquear, cerrarSesion, ejecutarConToken }),
+        [estado, usuario, ingresar, desbloquear, cerrarSesion, ejecutarConToken],
     );
 
     return <SesionContext.Provider value={valor}>{children}</SesionContext.Provider>;
