@@ -48,6 +48,7 @@ export default function TabLayout() {
             <Stack.Screen name="dev" options={{ title: 'Menú de pruebas' }} />
             <Stack.Screen name="dev-servicios" options={{ title: 'Probar servicios' }} />
             <Stack.Screen name="dev-almacenamiento" options={{ title: 'Probar almacenamiento' }} />
+            <Stack.Screen name="dev-avisos" options={{ title: 'Probar avisos y componentes' }} />
           </Stack>
         </ConAvisoSinConexion>
       </ThemeProvider>
