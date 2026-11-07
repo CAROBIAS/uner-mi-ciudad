@@ -1,6 +1,44 @@
+import * as Notifications from 'expo-notifications';
 import { obtenerBase } from './base';
 
-// AVISOS DE CERCANÍA YA ENVIADOS (Integrante 2) — guardados en SQLite.
+// Configurar cómo se deben comportar las notificaciones cuando la app está en primer plano
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
+// Solicitud/verificación de permisos de notificaciones
+export async function solicitarPermisosNotificaciones(): Promise<boolean> {
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+  
+  if (existingStatus !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+  
+  return finalStatus === 'granted';
+}
+
+// Enviar notificación de cercanía a un lugar
+export async function enviarNotificacionCercania(titulo: string, cuerpo: string): Promise<void> {
+  const tienePermiso = await solicitarPermisosNotificaciones();
+  if (!tienePermiso) return;
+
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: titulo,
+      body: cuerpo,
+      sound: 'default',
+    },
+    trigger: null, // trigger: null la dispara inmediatamente
+  });
+}
+
+// AVISOS DE CERCANÍA YA ENVIADOS guardados en SQLite.
 // Sirve para no avisar dos veces el mismo día del mismo lugar.
 
 // Fecha de hoy en Argentina ("AAAA-MM-DD"), sin importar la zona horaria del celular.
