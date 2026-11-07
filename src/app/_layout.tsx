@@ -3,6 +3,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
+import { solicitarPermisosNotificaciones } from '@/almacenamiento/avisos-cercania';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { ConAvisoSinConexion } from '@/components/aviso-sin-conexion';
 import { useSesion } from '@/hooks/use-sesion';
@@ -25,6 +26,11 @@ function GuardiaSesion() {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+
+  useEffect(() => {
+    solicitarPermisosNotificaciones();
+  }, []);
+
   return (
     <SesionProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
