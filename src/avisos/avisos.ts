@@ -23,13 +23,22 @@ export function configurarAvisos(): void {
   });
 }
 
-// En Android los avisos necesitan un "canal". Se crea antes de pedir permiso.
+// En Android los avisos usan un "canal". Se crea antes de pedir permiso.
+// En Expo Go crear canales falla: ahí se sigue sin canal propio y Android usa
+// el canal por defecto. En el APK el canal se crea normalmente.
+let canalCreado = false;
+
 async function crearCanalAndroid(): Promise<void> {
-  if (Platform.OS !== 'android') return;
-  await Notifications.setNotificationChannelAsync(CANAL_ANDROID, {
-    name: 'Avisos de Mi Ciudad',
-    importance: Notifications.AndroidImportance.HIGH,
-  });
+  if (Platform.OS !== 'android' || canalCreado) return;
+  try {
+    await Notifications.setNotificationChannelAsync(CANAL_ANDROID, {
+      name: 'Avisos de Mi Ciudad',
+      importance: Notifications.AndroidImportance.HIGH,
+    });
+    canalCreado = true;
+  } catch {
+    canalCreado = false;
+  }
 }
 
 // Pide permiso solo si todavía no lo tiene. Devuelve true si se puede avisar.
@@ -56,7 +65,7 @@ export async function enviarAvisoAhora(
     if (!(await pedirPermisoAvisos())) return null;
     return await Notifications.scheduleNotificationAsync({
       content: { title: titulo, body: cuerpo, data: datos ?? {} },
-      trigger: { channelId: CANAL_ANDROID }, // sin fecha = sale ya
+      trigger: canalCreado ? { channelId: CANAL_ANDROID } : null, // sin fecha = sale ya
     });
   } catch {
     return null;
@@ -79,7 +88,7 @@ export async function programarAviso(
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
         date: fecha,
-        channelId: CANAL_ANDROID,
+        ...(canalCreado ? { channelId: CANAL_ANDROID } : {}),
       },
     });
   } catch {
