@@ -6,6 +6,7 @@ import { useColorScheme } from 'react-native';
 import { configurarAvisos } from '@/avisos/avisos';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { ConAvisoSinConexion } from '@/components/aviso-sin-conexion';
+import { RevisorEventosCancelados } from '@/components/revisor-eventos-cancelados';
 import { useSesion } from '@/hooks/use-sesion';
 import { SesionProvider } from '@/providers/sesion';
 
@@ -31,6 +32,7 @@ export default function TabLayout() {
     <SesionProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <GuardiaSesion />
+        <RevisorEventosCancelados />
         <AnimatedSplashOverlay />
         <ConAvisoSinConexion>
           <Stack>
