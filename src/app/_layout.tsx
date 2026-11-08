@@ -3,12 +3,14 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
+import { configurarAvisos } from '@/avisos/avisos';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { ConAvisoSinConexion } from '@/components/aviso-sin-conexion';
 import { useSesion } from '@/hooks/use-sesion';
 import { SesionProvider } from '@/providers/sesion';
 
 SplashScreen.preventAutoHideAsync();
+configurarAvisos();
 
 function GuardiaSesion() {
   const { estado } = useSesion();
@@ -46,6 +48,7 @@ export default function TabLayout() {
             <Stack.Screen name="dev" options={{ title: 'Menú de pruebas' }} />
             <Stack.Screen name="dev-servicios" options={{ title: 'Probar servicios' }} />
             <Stack.Screen name="dev-almacenamiento" options={{ title: 'Probar almacenamiento' }} />
+            <Stack.Screen name="dev-avisos" options={{ title: 'Probar avisos y componentes' }} />
           </Stack>
         </ConAvisoSinConexion>
       </ThemeProvider>
