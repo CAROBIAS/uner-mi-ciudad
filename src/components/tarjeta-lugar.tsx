@@ -14,7 +14,9 @@ type Props = {
   distancia?: string | null;
   onPress?: (event: GestureResponderEvent) => void;
 };
-
+/**
+ *  Usa archivos descargados cuando están disponibles y configura reproducción en segundo plano.
+ */
 export function TarjetaLugar({ lugar, categoria, distancia, onPress }: Props) {
   const theme = useTheme();
   const estado = estadoHorarioLugar(lugar);
