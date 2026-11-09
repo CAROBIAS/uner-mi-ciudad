@@ -36,7 +36,16 @@
         }
       ],
       "@react-native-vector-icons/ionicons",
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": true,
+          "enableBackgroundRecording": false,
+          "recordAudioAndroid": false,
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
