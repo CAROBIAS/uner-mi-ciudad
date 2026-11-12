@@ -6,6 +6,7 @@ import { Alert, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-n
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BotonGrande } from '@/components/boton-grande';
+import { BotonGuardarEvento } from '@/components/boton-guardar-evento';
 import { MensajeCargando, MensajeError } from '@/components/mensajes-estado';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -209,6 +210,9 @@ export default function FichaEventoScreen() {
           <Fila icono="time-outline" texto={fechaLarga(evento.inicio)} />
           <Fila icono="hourglass-outline" texto={duracion(evento)} />
           {precio ? <Fila icono="ticket-outline" texto={precio} /> : null}
+
+          {/* 7: guardar evento y recordatorio */}
+          <BotonGuardarEvento evento={evento} />
 
           {/* 6.2: dónde es */}
           <ThemedText type="subtitle" style={styles.subtitulo}>
