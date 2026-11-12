@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 
+import { listarVisitasPendientes } from '@/almacenamiento/visitas';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
@@ -59,8 +60,15 @@ export default function YoScreen() {
   const { estado, usuario, cerrarSesion } = useSesion();
   const theme = useTheme();
 
-  function confirmarCierre() {
-    Alert.alert('Cerrar sesión', '¿Querés salir de tu cuenta?', [
+  async function confirmarCierre() {
+    // Tarea 8.4 (Integrante 2): si hay visitas sin subir, se avisa. No se borran:
+    // quedan en el celular y se suben cuando vuelva a ingresar.
+    const pendientes = usuario ? await listarVisitasPendientes(usuario.id).catch(() => []) : [];
+    const mensaje =
+      pendientes.length > 0
+        ? `Tenés ${pendientes.length} ${pendientes.length === 1 ? 'visita' : 'visitas'} sin subir. Quedan guardadas en este celular y se suben cuando vuelvas a ingresar. ¿Querés salir de tu cuenta?`
+        : '¿Querés salir de tu cuenta?';
+    Alert.alert('Cerrar sesión', mensaje, [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Cerrar sesión',
@@ -175,7 +183,7 @@ export default function YoScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Cerrar sesión"
-              onPress={confirmarCierre}
+              onPress={() => void confirmarCierre()}
               style={({ pressed }) => [
                 styles.cerrarBoton,
                 { borderColor: theme.backgroundSelected },
