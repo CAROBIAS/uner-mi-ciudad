@@ -3,6 +3,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
+import { AlTocarAviso } from '@/avisos/al-tocar-aviso';
 import { configurarAvisos } from '@/avisos/avisos';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { ConAvisoSinConexion } from '@/components/aviso-sin-conexion';
@@ -33,6 +34,7 @@ export default function TabLayout() {
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <GuardiaSesion />
         <RevisorEventosCancelados />
+        <AlTocarAviso />
         <AnimatedSplashOverlay />
         <ConAvisoSinConexion>
           <Stack>
