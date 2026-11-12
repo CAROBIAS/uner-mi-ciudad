@@ -54,21 +54,28 @@ export async function guardarFotoVisita(uriTemporal: string): Promise<string> {
 // ---------- Lugares descargados (tareas 7.3 a 7.6) ----------
 
 // Necesita internet. Si falla a la mitad, borra lo bajado y avisa con un error.
-export async function descargarLugar(lugar: Lugar): Promise<void> {
+export async function descargarLugar(
+  lugar: Lugar,
+  alProgresar?: (completados: number, total: number) => void,
+): Promise<void> {
   const carpeta = carpetaLugar(lugar.id);
   carpeta.create({ intermediates: true, idempotent: true });
   try {
+    const total = lugar.imagenes.length + (lugar.audioguia ? 1 : 0);
+    let completados = 0;
     if (lugar.audioguia) {
       const url = lugar.audioguia.url;
       await File.downloadFileAsync(url, new File(carpeta, `audio${extensionDe(url, '.mp3')}`), {
         idempotent: true,
       });
+      alProgresar?.(++completados, total);
     }
     for (let i = 0; i < lugar.imagenes.length; i++) {
       const url = lugar.imagenes[i];
       await File.downloadFileAsync(url, new File(carpeta, `imagen-${i}${extensionDe(url, '.jpg')}`), {
         idempotent: true,
       });
+      alProgresar?.(++completados, total);
     }
   } catch (error) {
     if (carpeta.exists) carpeta.delete();
