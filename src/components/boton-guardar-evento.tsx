@@ -51,6 +51,8 @@ export function BotonGuardarEvento({ evento }: Props) {
   }, [usuarioId, evento.id]);
 
   const estaGuardado = usuarioId !== null && guardado !== null;
+  // Misma regla que la API (EVENTO_NO_VIGENTE): solo se guardan eventos programados o suspendidos.
+  const noVigente = evento.estado === 'cancelado' || evento.estado === 'finalizado';
 
   async function guardar(id: string) {
     const aviso = new Date(Date.parse(evento.inicio) - MINUTOS_ANTES * 60_000);
@@ -98,6 +100,16 @@ export function BotonGuardarEvento({ evento }: Props) {
     } finally {
       setOcupado(false);
     }
+  }
+
+  if (noVigente && !estaGuardado) {
+    return (
+      <ThemedText type="small" themeColor="textSecondary">
+        {evento.estado === 'cancelado'
+          ? 'Este evento está cancelado: no se puede guardar.'
+          : 'Este evento ya terminó: no se puede guardar.'}
+      </ThemedText>
+    );
   }
 
   return (
