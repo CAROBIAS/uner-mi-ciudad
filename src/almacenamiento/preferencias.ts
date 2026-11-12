@@ -1,5 +1,6 @@
 import Storage from 'expo-sqlite/kv-store';
 
+import { aplicarTema } from '@/hooks/aplicar-tema';
 import type { Preferencias, Usuario } from '@/tipos';
 
 // PREFERENCIAS Y DATOS DEL USUARIO (Integrante 2)
@@ -25,6 +26,7 @@ export async function obtenerPreferencias(): Promise<Preferencias> {
 
 export async function guardarPreferencias(nuevas: Preferencias): Promise<void> {
   await Storage.setItem(CLAVE_PREFERENCIAS, JSON.stringify(nuevas));
+  aplicarTema(nuevas.tema); // el cambio de modo se ve enseguida (Integrante 6, tarea 2.3)
 }
 
 // ---------- Datos del usuario que ingresó (tarea 4.3) ----------

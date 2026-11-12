@@ -73,3 +73,21 @@ export async function marcarVisitaSubida(id: string): Promise<void> {
   const base = await obtenerBase();
   await base.runAsync('UPDATE visitas SET sincronizada = 1 WHERE id = ?', id);
 }
+
+// Guarda una visita que vino de la cuenta (tarea 8.3), ya marcada como subida.
+// Si ya estaba en el celular, no la duplica. La fecha se guarda en el mismo formato
+// que las visitas nuevas, para que el orden de la lista sea correcto.
+export async function guardarVisitaDescargada(visita: Visita): Promise<void> {
+  const base = await obtenerBase();
+  await base.runAsync(
+    `INSERT OR IGNORE INTO visitas (id, usuario_id, lugar_id, fecha_hora, origen, foto_uri, nota, sincronizada)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 1)`,
+    visita.id,
+    visita.usuarioId,
+    visita.lugarId,
+    new Date(visita.fechaHora).toISOString(),
+    visita.origen,
+    visita.fotoUri,
+    visita.nota,
+  );
+}

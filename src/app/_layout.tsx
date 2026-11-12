@@ -3,10 +3,13 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
+import { AlTocarAviso } from '@/avisos/al-tocar-aviso';
 import { configurarAvisos } from '@/avisos/avisos';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { ConAvisoSinConexion } from '@/components/aviso-sin-conexion';
 import { RevisorEventosCancelados } from '@/components/revisor-eventos-cancelados';
+import { Sincronizador } from '@/components/sincronizador';
+import { useTemaGuardado } from '@/hooks/use-tema-guardado';
 import { useSesion } from '@/hooks/use-sesion';
 import { SesionProvider } from '@/providers/sesion';
 
@@ -27,12 +30,15 @@ function GuardiaSesion() {
 }
 
 export default function TabLayout() {
+  useTemaGuardado();
   const colorScheme = useColorScheme();
   return (
     <SesionProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <GuardiaSesion />
         <RevisorEventosCancelados />
+        <AlTocarAviso />
+        <Sincronizador />
         <AnimatedSplashOverlay />
         <ConAvisoSinConexion>
           <Stack>
