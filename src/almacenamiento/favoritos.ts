@@ -1,3 +1,4 @@
+import { marcarFavoritoRemoto, quitarFavoritoRemoto } from '@/servicios/mis-datos';
 import type { Favorito } from '@/tipos';
 
 import { obtenerBase } from './base';
@@ -26,12 +27,16 @@ export async function agregarFavorito(usuarioId: string, lugarId: string): Promi
     lugarId,
   );
   if (!favorito) throw new Error('No se pudo guardar el favorito.');
+  // También en la cuenta (tarea 9.1). Si falla (sin señal), se sube en la próxima sincronización.
+  void marcarFavoritoRemoto(lugarId).catch(() => undefined);
   return favorito;
 }
 
 export async function quitarFavorito(usuarioId: string, lugarId: string): Promise<void> {
   const base = await obtenerBase();
   await base.runAsync('DELETE FROM favoritos WHERE usuario_id = ? AND lugar_id = ?', usuarioId, lugarId);
+  // También en la cuenta (tarea 9.1). Sin señal, la baja queda solo en el celular.
+  void quitarFavoritoRemoto(lugarId).catch(() => undefined);
 }
 
 export async function esFavorito(usuarioId: string, lugarId: string): Promise<boolean> {
@@ -50,5 +55,17 @@ export async function listarFavoritos(usuarioId: string): Promise<Favorito[]> {
   return base.getAllAsync<Favorito>(
     `SELECT ${COLUMNAS} FROM favoritos WHERE usuario_id = ? ORDER BY creado_en DESC, rowid DESC`,
     usuarioId,
+  );
+}
+
+// Guarda un favorito que vino de la cuenta (tarea 8.3). Si ya estaba, no lo duplica.
+export async function guardarFavoritoDescargado(favorito: Favorito): Promise<void> {
+  const base = await obtenerBase();
+  await base.runAsync(
+    'INSERT OR IGNORE INTO favoritos (id, usuario_id, lugar_id, creado_en) VALUES (?, ?, ?, ?)',
+    favorito.id,
+    favorito.usuarioId,
+    favorito.lugarId,
+    new Date(favorito.creadoEn).toISOString(),
   );
 }

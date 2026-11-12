@@ -8,6 +8,7 @@ import { configurarAvisos } from '@/avisos/avisos';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { ConAvisoSinConexion } from '@/components/aviso-sin-conexion';
 import { RevisorEventosCancelados } from '@/components/revisor-eventos-cancelados';
+import { Sincronizador } from '@/components/sincronizador';
 import { useTemaGuardado } from '@/hooks/use-tema-guardado';
 import { useSesion } from '@/hooks/use-sesion';
 import { SesionProvider } from '@/providers/sesion';
@@ -37,6 +38,7 @@ export default function TabLayout() {
         <GuardiaSesion />
         <RevisorEventosCancelados />
         <AlTocarAviso />
+        <Sincronizador />
         <AnimatedSplashOverlay />
         <ConAvisoSinConexion>
           <Stack>
