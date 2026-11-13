@@ -1,4 +1,4 @@
-import { MapaLeaflet, type MapaLeafletHandle } from "@/components/mapa-leaflet";
+import { Mapa, type MapaHandle } from "@/components/mapa";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
@@ -8,7 +8,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { useUbicacion } from "@/hooks/use-ubicacion";
 import { ErrorServicio } from "@/servicios/comun";
 import { obtenerCategorias, obtenerLugares } from "@/servicios/lugares";
-import type { Categoria, Coordenadas, Lugar } from "@/tipos";
+import type { Categoria, Lugar } from "@/tipos";
 import {
   calcularDistanciaMetros,
   calcularRotacionFlecha,
@@ -34,7 +34,7 @@ function mensajeError(error: unknown): string {
 
 export default function MapaScreen() {
   const theme = useTheme();
-  const mapa = useRef<MapaLeafletHandle>(null);
+  const mapa = useRef<MapaHandle>(null);
   const {
     coordenadas,
     estadoPermiso,
@@ -51,8 +51,6 @@ export default function MapaScreen() {
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<
     string | null
   >(null);
-  const [puntoSeleccionado, setPuntoSeleccionado] =
-    useState<Coordenadas | null>(null);
 
   useEffect(() => {
     let activo = true;
@@ -245,19 +243,17 @@ export default function MapaScreen() {
         ) : null}
 
         <View style={styles.contenedorMapa}>
-          <MapaLeaflet
+          <Mapa
             ref={mapa}
             categorias={categorias}
             lugares={lugaresVisibles}
             ubicacion={coordenadas}
-            puntoSeleccionado={puntoSeleccionado}
             onLugarPress={(lugarId) => {
               const lugar = lugaresVisibles.find(
                 (actual) => actual.id === lugarId,
               );
               if (lugar) abrirDetalle(lugar);
             }}
-            onPuntoSeleccionado={setPuntoSeleccionado}
           />
 
           <Pressable
@@ -277,13 +273,6 @@ export default function MapaScreen() {
             <Ionicons name="locate-outline" size={22} color={theme.text} />
           </Pressable>
         </View>
-        {puntoSeleccionado ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            Punto seleccionado: {puntoSeleccionado.latitud.toFixed(5)},{" "}
-            {puntoSeleccionado.longitud.toFixed(5)}
-          </ThemedText>
-        ) : null}
-
         {errorLugares ? (
           <ThemedView type="backgroundElement" style={styles.estado}>
             <ThemedText type="smallBold">{errorLugares}</ThemedText>
