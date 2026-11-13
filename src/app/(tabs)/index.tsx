@@ -1,4 +1,7 @@
-import { Mapa, type MapaHandle } from "@/components/mapa";
+import {
+  MapaLeaflet,
+  type MapaLeafletHandle,
+} from "@/components/mapa-leaflet";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
@@ -34,7 +37,7 @@ function mensajeError(error: unknown): string {
 
 export default function MapaScreen() {
   const theme = useTheme();
-  const mapa = useRef<MapaHandle>(null);
+  const mapa = useRef<MapaLeafletHandle>(null);
   const {
     coordenadas,
     estadoPermiso,
@@ -243,7 +246,7 @@ export default function MapaScreen() {
         ) : null}
 
         <View style={styles.contenedorMapa}>
-          <Mapa
+          <MapaLeaflet
             ref={mapa}
             categorias={categorias}
             lugares={lugaresVisibles}
