@@ -5,7 +5,7 @@ import {
   useAudioPlayer,
   useAudioPlayerStatus,
 } from 'expo-audio';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { obtenerDescarga } from '@/almacenamiento/archivos';
@@ -30,9 +30,18 @@ export function ReproductorAudioguia({ lugar, audioguia }: Props) {
   const theme = useTheme();
   const player = useAudioPlayer(null, { updateInterval: 500 });
   const estado = useAudioPlayerStatus(player);
+  const montado = useRef(true);
+  const enfocado = useRef(false);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [fuenteLista, setFuenteLista] = useState(false);
+
+  useLayoutEffect(() => {
+    montado.current = true;
+    return () => {
+      montado.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     let activo = true;
@@ -70,9 +79,15 @@ export function ReproductorAudioguia({ lugar, audioguia }: Props) {
 
   useFocusEffect(
     useCallback(
-      () => () => {
-        player.pause();
-        player.setActiveForLockScreen(false);
+      () => {
+        enfocado.current = true;
+        return () => {
+          enfocado.current = false;
+          if (!montado.current) return;
+
+          player.pause();
+          player.setActiveForLockScreen(false);
+        };
       },
       [player],
     ),
@@ -91,13 +106,17 @@ export function ReproductorAudioguia({ lugar, audioguia }: Props) {
         shouldPlayInBackground: true,
         interruptionMode: 'doNotMix',
       });
+      if (!montado.current || !enfocado.current) return;
+
       player.setActiveForLockScreen(true, {
         title: lugar.nombre,
         artist: 'Audioguía · Mi Ciudad Colón',
       });
       player.play();
     } catch {
-      Alert.alert('Audioguía', 'No se pudo iniciar la reproducción.');
+      if (montado.current && enfocado.current) {
+        Alert.alert('Audioguía', 'No se pudo iniciar la reproducción.');
+      }
     }
   }
 

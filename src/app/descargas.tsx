@@ -184,7 +184,10 @@ export default function DescargasScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.contenido,
-          { paddingBottom: Math.max(Spacing.five, insets.bottom + Spacing.four) },
+          {
+            paddingBottom:
+              54 + Spacing.two + Math.max(Spacing.three, insets.bottom + Spacing.two),
+          },
         ]}
       >
         <View style={styles.encabezado}>
@@ -282,29 +285,51 @@ export default function DescargasScreen() {
           </View>
         ) : null}
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Descargar lugares seleccionados"
-          disabled={descargando || cargando}
-          onPress={() => void descargarSeleccionados()}
-          style={({ pressed }) => [
-            styles.botonDescargar,
-            { backgroundColor: theme.text },
-            (pressed || descargando || cargando) && styles.presionado,
-          ]}
-        >
-          <Ionicons name="download-outline" size={21} color={theme.background} />
-          <ThemedText type="smallBold" style={{ color: theme.background }}>
-            {descargando ? 'Descargando...' : `Descargar seleccionados (${seleccionados.length})`}
-          </ThemedText>
-        </Pressable>
       </ScrollView>
+      <View
+        style={[
+          styles.pieFlotante,
+          {
+            backgroundColor: theme.background,
+            paddingBottom: Math.max(Spacing.three, insets.bottom + Spacing.two),
+          },
+        ]}
+      >
+        <View style={styles.contenidoPie}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Descargar lugares seleccionados"
+            disabled={descargando || cargando}
+            onPress={() => void descargarSeleccionados()}
+            style={({ pressed }) => [
+              styles.botonDescargar,
+              { backgroundColor: theme.text },
+              (pressed || descargando || cargando) && styles.presionado,
+            ]}
+          >
+            <Ionicons name="download-outline" size={21} color={theme.background} />
+            <ThemedText type="smallBold" style={{ color: theme.background }}>
+              {descargando ? 'Descargando...' : `Descargar seleccionados (${seleccionados.length})`}
+            </ThemedText>
+          </Pressable>
+        </View>
+      </View>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   pantalla: { flex: 1 },
+  pieFlotante: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    paddingTop: Spacing.two,
+    paddingHorizontal: Spacing.three,
+  },
+  contenidoPie: { width: '100%', maxWidth: MaxContentWidth },
   contenido: {
     width: '100%',
     maxWidth: MaxContentWidth,
