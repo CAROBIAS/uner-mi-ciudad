@@ -38,6 +38,12 @@
       "@react-native-vector-icons/ionicons",
       "expo-sqlite",
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "UNER Mi Ciudad usa tu ubicación para mostrar lugares cercanos y calcular distancias."
+        }
+      ],
+      [
         "expo-audio",
         {
           "enableBackgroundPlayback": true,
