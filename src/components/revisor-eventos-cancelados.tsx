@@ -51,6 +51,7 @@ async function revisar(usuarioId: string): Promise<void> {
                 await enviarAvisoAhora(
                     evento.estado === 'cancelado' ? 'Evento cancelado' : 'Evento suspendido',
                     `"${evento.titulo}" ${quePaso}.`,
+                    { eventoId: evento.id },
                 );
                 if (guardado.recordatorioId) await cancelarAviso(guardado.recordatorioId);
                 await actualizarEstadoEventoGuardado(usuarioId, evento.id, evento.estado);
