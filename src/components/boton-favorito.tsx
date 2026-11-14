@@ -26,6 +26,7 @@ export function BotonFavorito({ lugarId, tamano = 28 }: Props) {
     let activo = true;
 
     if (!usuarioId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFavorito(false);
       return;
     }

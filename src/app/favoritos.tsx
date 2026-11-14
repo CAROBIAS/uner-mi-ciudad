@@ -47,6 +47,7 @@ export default function FavoritosScreen() {
 
   useEffect(() => {
     if (!usuarioId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setItems([]);
       setCargando(false);
       setError(null);

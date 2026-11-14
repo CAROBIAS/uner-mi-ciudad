@@ -16,9 +16,11 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useUbicacion } from '@/hooks/use-ubicacion';
 import { ErrorServicio } from '@/servicios/comun';
 import { obtenerCategorias, obtenerLugares } from '@/servicios/lugares';
 import type { Categoria, Lugar } from '@/tipos';
+import { calcularDistanciaMetros, formatearDistancia, ordenarPorDistancia } from '@/utils/geo';
 
 function normalizar(texto: string): string {
   return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es-AR').trim();
@@ -31,6 +33,12 @@ function mensajeDeError(error: unknown): string {
 export default function ListadoLugaresScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const {
+    coordenadas,
+    estadoPermiso,
+    error: errorUbicacion,
+    solicitarPermiso,
+  } = useUbicacion();
   const [lugares, setLugares] = useState<Lugar[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [busqueda, setBusqueda] = useState('');
@@ -72,16 +80,31 @@ export default function ListadoLugaresScreen() {
   );
   const lugaresVisibles = useMemo(() => {
     const termino = normalizar(busqueda);
-    return lugares
+    const filtrados = lugares
       .filter((lugar) => !categoriaSeleccionada || lugar.categoriaId === categoriaSeleccionada)
       .filter(
         (lugar) =>
           termino.length === 0 ||
           normalizar(lugar.nombre).includes(termino) ||
           normalizar(lugar.descripcionCorta).includes(termino),
-      )
-      .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es-AR'));
-  }, [busqueda, categoriaSeleccionada, lugares]);
+      );
+    if (estadoPermiso === 'concedido' && coordenadas) {
+      return ordenarPorDistancia(filtrados, coordenadas);
+    }
+    return filtrados.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es-AR'));
+  }, [busqueda, categoriaSeleccionada, coordenadas, estadoPermiso, lugares]);
+  const distanciasPorId = useMemo(
+    () =>
+      new Map(
+        estadoPermiso === 'concedido' && coordenadas
+          ? lugaresVisibles.map((lugar) => [
+              lugar.id,
+              formatearDistancia(calcularDistanciaMetros(coordenadas, lugar.coordenadas)),
+            ])
+          : [],
+      ),
+    [coordenadas, estadoPermiso, lugaresVisibles],
+  );
 
   return (
     <ThemedView style={styles.pantalla}>
@@ -163,9 +186,35 @@ export default function ListadoLugaresScreen() {
           })}
         </ScrollView>
 
-        <ThemedText type="small" themeColor="textSecondary">
-          Orden alfabético. La distancia aparecerá cuando esté disponible la ubicación.
-        </ThemedText>
+        <View style={styles.ubicacion}>
+          <ThemedText type="small" themeColor="textSecondary">
+            {estadoPermiso === 'denegado'
+              ? 'Orden alfabético. Permití la ubicación para ordenar por cercanía y ver distancias.'
+              : errorUbicacion
+                ? `${errorUbicacion} Podés volver a intentar.`
+              : estadoPermiso === 'consultando'
+                ? 'Consultando el permiso de ubicación...'
+                : coordenadas
+                  ? 'Lugares ordenados por cercanía.'
+                  : 'Buscando tu ubicación...'}
+          </ThemedText>
+          {estadoPermiso === 'denegado' || errorUbicacion ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => void solicitarPermiso()}
+              style={({ pressed }) => [
+                styles.botonUbicacion,
+                { borderColor: theme.backgroundSelected },
+                pressed && styles.presionado,
+              ]}
+            >
+              <Ionicons name="location-outline" size={18} color={theme.text} />
+              <ThemedText type="smallBold">
+                {errorUbicacion ? 'Reintentar ubicación' : 'Permitir ubicación'}
+              </ThemedText>
+            </Pressable>
+          ) : null}
+        </View>
 
         {cargando ? (
           <View style={styles.estado}>
@@ -204,7 +253,18 @@ export default function ListadoLugaresScreen() {
                 key={lugar.id}
                 lugar={lugar}
                 categoria={categoriasPorId.get(lugar.categoriaId)}
-                onPress={() => router.push({ pathname: '/lugares/[id]', params: { id: lugar.id } })}
+                distancia={distanciasPorId.get(lugar.id)}
+                onPress={() =>
+                  router.push({
+                    pathname: '/lugares/[id]',
+                    params: {
+                      id: lugar.id,
+                      ...(distanciasPorId.has(lugar.id)
+                        ? { distancia: distanciasPorId.get(lugar.id) }
+                        : {}),
+                    },
+                  })
+                }
               />
             ))}
           </View>
@@ -237,7 +297,19 @@ const styles = StyleSheet.create({
   filtros: { gap: 8, paddingRight: 8 },
   filtro: { minHeight: 40, borderRadius: 20, justifyContent: 'center', paddingHorizontal: 16 },
   lista: { gap: Spacing.two },
+  ubicacion: { gap: Spacing.two },
+  botonUbicacion: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+  },
   estado: { alignItems: 'center', padding: Spacing.four, gap: Spacing.two },
   aviso: { borderRadius: 16, padding: Spacing.four, alignItems: 'center', gap: Spacing.three },
   boton: { minHeight: 48, borderRadius: 12, justifyContent: 'center', paddingHorizontal: 20 },
+  presionado: { opacity: 0.65 },
 });
