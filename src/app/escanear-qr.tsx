@@ -91,7 +91,12 @@ export default function EscanearQrScreen() {
         ) : (
           <Boton texto="Abrir configuración" alPresionar={() => void Linking.openSettings()} />
         )}
-        <Boton texto="Elegir el lugar a mano" alPresionar={() => router.replace('/lugares')} />
+        <Boton
+          texto="Elegir el lugar a mano"
+          alPresionar={() =>
+            router.replace(estadoSesion === 'conSesion' ? '/registrar-visita' : '/lugares')
+          }
+        />
       </ThemedView>
     );
   }

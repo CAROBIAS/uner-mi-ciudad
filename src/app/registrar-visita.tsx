@@ -29,18 +29,21 @@ import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useSesion } from '@/hooks/use-sesion';
 import { useTheme } from '@/hooks/use-theme';
 import { ErrorServicio } from '@/servicios/comun';
+import { useUbicacion } from '@/hooks/use-ubicacion';
 import { obtenerLugar, obtenerLugares } from '@/servicios/lugares';
-import type { Lugar } from '@/tipos';
+import type { Lugar, OrigenVisita } from '@/tipos';
+import { calcularDistanciaMetros, formatearDistancia } from '@/utils/geo';
 
 // REGISTRAR VISITA (Integrante 1)
 // - Solo con cuenta (5.1).
 // - Si llega desde la ficha de un lugar, ya trae "lugarId" (5.2).
 // - Si no, se elige el lugar a mano con buscador o escaneando el QR (5.3).
-//   La opción "por cercanía" (5.3.2) aparece cuando exista la ubicación (Integrante 5).
+//   o, con permiso de ubicación, entre los lugares a menos de 100 m (5.3.2, origen "gps").
 // - Foto opcional con cámara o galería (5.4) y nota opcional de hasta 250 caracteres (5.5).
 // - Al guardar: copia la foto, crea la visita, vibra y vuelve a Mi recorrido (5.6 a 5.8).
 
 const LARGO_NOTA = 250;
+const DISTANCIA_CERCANIA_METROS = 100; // "estar en el lugar" (cátedra)
 
 function normalizar(texto: string): string {
   return texto
@@ -62,6 +65,9 @@ export default function RegistrarVisitaScreen() {
 
   // Lugar elegido
   const [lugar, setLugar] = useState<Lugar | null>(null);
+  const [origen, setOrigen] = useState<OrigenVisita>('manual');
+  // 5.3.2: ubicación del Integrante 5. Sin permiso, la opción "cerca tuyo" no aparece.
+  const { coordenadas, estadoPermiso } = useUbicacion();
   const [cargandoLugar, setCargandoLugar] = useState(Boolean(lugarId));
   const [errorLugar, setErrorLugar] = useState<string | null>(null);
 
@@ -116,6 +122,20 @@ export default function RegistrarVisitaScreen() {
     };
   }, [necesitaLista, versionLista]);
 
+  // 5.3.2: lugares a menos de 100 m, del más cercano al más lejano.
+  const lugaresCercanos = useMemo(() => {
+    if (estadoPermiso !== 'concedido' || !coordenadas) return [];
+    return lugares
+      .map((item) => ({ item, metros: calcularDistanciaMetros(coordenadas, item.coordenadas) }))
+      .filter(({ metros }) => metros <= DISTANCIA_CERCANIA_METROS)
+      .sort((a, b) => a.metros - b.metros);
+  }, [coordenadas, estadoPermiso, lugares]);
+
+  function elegir(elegido: Lugar, origenElegido: OrigenVisita) {
+    setLugar(elegido);
+    setOrigen(origenElegido);
+  }
+
   const lugaresVisibles = useMemo(() => {
     const termino = normalizar(busqueda);
     if (!termino) return lugares;
@@ -168,7 +188,7 @@ export default function RegistrarVisitaScreen() {
       await crearVisita({
         usuarioId: usuario.id,
         lugarId: lugar.id,
-        origen: 'manual',
+        origen,
         fotoUri: fotoPermanente,
         nota: textoNota.length > 0 ? textoNota : null,
       });
@@ -247,6 +267,32 @@ export default function RegistrarVisitaScreen() {
                 onPress={() => router.replace('/escanear-qr')}
               />
 
+              {lugaresCercanos.length > 0 ? (
+                <>
+                  <ThemedText type="smallBold">Estás cerca de</ThemedText>
+                  {lugaresCercanos.map(({ item, metros }) => (
+                    <Pressable
+                      key={`cerca-${item.id}`}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Elegir ${item.nombre}, a ${formatearDistancia(metros)}`}
+                      onPress={() => elegir(item, 'gps')}
+                      style={({ pressed }) => [pressed && styles.presionado]}
+                    >
+                      <ThemedView type="backgroundElement" style={styles.filaLugar}>
+                        <Ionicons name="navigate" size={22} color={theme.primary} />
+                        <View style={styles.textos}>
+                          <ThemedText type="smallBold">{item.nombre}</ThemedText>
+                          <ThemedText type="small" themeColor="textSecondary">
+                            A {formatearDistancia(metros)}
+                          </ThemedText>
+                        </View>
+                        <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
+                      </ThemedView>
+                    </Pressable>
+                  ))}
+                </>
+              ) : null}
+
               <ThemedText type="smallBold">O elegilo de la lista</ThemedText>
               <View style={[styles.busqueda, { borderColor: theme.backgroundSelected }]}>
                 <Ionicons name="search" size={20} color={theme.textSecondary} />
@@ -281,7 +327,7 @@ export default function RegistrarVisitaScreen() {
                       key={item.id}
                       accessibilityRole="button"
                       accessibilityLabel={`Elegir ${item.nombre}`}
-                      onPress={() => setLugar(item)}
+                      onPress={() => elegir(item, 'manual')}
                       style={({ pressed }) => [pressed && styles.presionado]}
                     >
                       <ThemedView type="backgroundElement" style={styles.filaLugar}>
