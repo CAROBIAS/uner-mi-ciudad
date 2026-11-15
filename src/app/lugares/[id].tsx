@@ -9,6 +9,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -89,6 +90,7 @@ export default function FichaLugarScreen() {
   const { id, distancia } = useLocalSearchParams<{ id: string; distancia?: string }>();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const anchoFoto = Math.min(useWindowDimensions().width, MaxContentWidth);
   const { usuario } = useSesion();
   const {
     coordenadas,
@@ -271,7 +273,7 @@ export default function FichaLugarScreen() {
                   key={`${uri}-${indice}`}
                   source={{ uri }}
                   contentFit="cover"
-                  style={styles.foto}
+                  style={[styles.foto, { width: anchoFoto }]}
                   accessibilityLabel={`Foto ${indice + 1} de ${lugar.nombre}`}
                 />
               ))}
